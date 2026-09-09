@@ -209,7 +209,16 @@ class Library(private val context: Context, private val prefs: Prefs) {
         buildQueue(false)   // 不保当前张:点洗牌立即随机跳一张
         return true
     }
-    fun stopPlay() { playing = false; paused = false }
+    /** 停止放映:把放映位置同步回手动指针,画面停在最后看到的那张 */
+    fun stopPlay() {
+        if (playing) {
+            queue.getOrNull(qp)?.let { cur ->
+                val at = pool().indexOfFirst { it.id == cur.id }
+                if (at >= 0) idx = at
+            }
+        }
+        playing = false; paused = false
+    }
 
     fun togglePause() { if (playing) paused = !paused }
 

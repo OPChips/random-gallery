@@ -334,7 +334,7 @@ fun ViewerScreen(
                 lib = lib, prog = prog.value,
                 onScope = { lib.setScope(it) },
                 onTouch = { hudTouch() },
-                onClose = { lib.stopPlay() },
+                onClose = { zen = true },   // ✕ 只收起面板,放映继续;停止用 ⤨
                 onSpeedCommit = { },
                 toast = toast,
                 modifier = Modifier.align(Alignment.BottomCenter).padding(start = 14.dp, end = 14.dp, bottom = 96.dp)
