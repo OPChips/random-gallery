@@ -1,0 +1,1390 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>走马灯 Zoetrope · 设计示例</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,700;0,9..144,900;1,9..144,500;1,9..144,700&family=IBM+Plex+Mono:wght@400;500;600&family=Noto+Serif+SC:wght@700;900&family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --film:#08080a;        /* 片基黑 */
+  --panel:#101014;       /* 面板 */
+  --panel2:#16161c;
+  --line:#26262e;
+  --line2:#33333d;
+  --paper:#ede8df;       /* 相纸暖白 */
+  --dim:#8a8578;         /* 暗房灰 */
+  --safelight:#ff4b2e;   /* 安全灯红 */
+  --safelight-dim:#c93716;
+  --gold:#e8a33d;        /* 铇丝金 */
+  --ok:#17beb8;
+  --serif:'Fraunces','Noto Serif SC',serif;
+  --sans:'Noto Sans SC',sans-serif;
+  --mono:'IBM Plex Mono',monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{scroll-behavior:smooth}
+body{
+  background:var(--film);color:var(--paper);
+  font-family:var(--sans);line-height:1.7;
+  overflow-x:hidden;
+}
+::selection{background:var(--safelight);color:var(--film)}
+
+/* ── 全局胶片颗粒 ─────────────────────────── */
+body::before{
+  content:"";position:fixed;inset:-50%;z-index:200;pointer-events:none;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.55'/%3E%3C/svg%3E");
+  opacity:.055;animation:grain 7s steps(6) infinite;
+}
+@keyframes grain{
+  0%,100%{transform:translate(0,0)}20%{transform:translate(-4%,3%)}
+  40%{transform:translate(3%,-5%)}60%{transform:translate(-5%,-2%)}80%{transform:translate(4%,4%)}
+}
+
+.wrap{max-width:1180px;margin:0 auto;padding:0 clamp(20px,4vw,56px)}
+
+/* ── 入场动画 ─────────────────────────────── */
+.rv{opacity:0;transform:translateY(20px);animation:rv .9s cubic-bezier(.2,.75,.2,1) forwards;animation-delay:var(--d,0s)}
+@keyframes rv{to{opacity:1;transform:none}}
+
+/* ── 顶栏 ─────────────────────────────────── */
+.topstrip{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:18px 0;border-bottom:1px solid var(--line);
+  font-family:var(--mono);font-size:11px;letter-spacing:.14em;color:var(--dim);
+}
+.topstrip .dot{color:var(--safelight)}
+.topstrip b{color:var(--paper);font-weight:500}
+
+/* ── Hero ─────────────────────────────────── */
+.hero{position:relative;padding:clamp(48px,8vh,96px) 0 72px}
+.hero-grid{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,.95fr);gap:clamp(32px,5vw,72px);align-items:center}
+
+.kicker{font-family:var(--mono);font-size:11px;letter-spacing:.22em;color:var(--safelight);margin-bottom:22px}
+.kicker::before{content:"● ";font-size:8px;vertical-align:2px}
+
+h1{font-family:var(--serif);font-weight:900;font-size:clamp(56px,8vw,104px);line-height:1.02;letter-spacing:.01em}
+h1 .en{
+  display:block;font-weight:500;font-style:italic;font-size:.32em;
+  color:var(--dim);letter-spacing:.04em;margin-top:14px;
+}
+h1 .en em{color:var(--safelight);font-style:italic}
+
+.tagline{
+  margin-top:30px;max-width:34em;color:var(--dim);font-size:15px;
+}
+.tagline strong{color:var(--paper);font-weight:500}
+
+.meta-row{
+  display:flex;flex-wrap:wrap;gap:10px 28px;margin-top:34px;
+  font-family:var(--mono);font-size:11px;letter-spacing:.1em;color:var(--dim);
+}
+.meta-row span b{color:var(--paper);font-weight:500}
+
+/* ── 设计注记 ─────────────────────────────── */
+.notes{border-top:1px solid var(--line);padding-top:8px}
+.note{
+  display:grid;grid-template-columns:52px 96px 1fr;gap:16px;align-items:baseline;
+  padding:19px 0;border-bottom:1px solid var(--line);
+}
+.note .no{font-family:var(--mono);font-size:11px;color:var(--safelight);letter-spacing:.1em}
+.note .nm{font-family:var(--serif);font-weight:700;font-size:17px}
+.note p{font-size:13px;color:var(--dim);line-height:1.75}
+.note p code{font-family:var(--mono);font-size:11px;color:var(--gold)}
+
+/* ── 手机外框 ─────────────────────────────── */
+.stage-wrap{position:relative;display:flex;justify-content:center}
+.safelight-glow{
+  position:absolute;inset:8% -6% -4%;z-index:-1;pointer-events:none;
+  background:radial-gradient(closest-side,rgba(255,75,46,.16),transparent 72%);
+  filter:blur(10px);
+}
+.phone{
+  position:relative;width:372px;height:772px;border-radius:46px;
+  background:#000;border:1px solid #2c2c34;
+  box-shadow:0 0 0 7px #0d0d11,0 0 0 8px #2c2c34,0 42px 90px -18px rgba(0,0,0,.9),0 0 120px -30px rgba(255,75,46,.28);
+}
+.screen{
+  position:absolute;inset:10px;border-radius:36px;overflow:hidden;
+  background:#000;font-family:var(--sans);
+}
+.screen .grain{
+  position:absolute;inset:0;z-index:40;pointer-events:none;opacity:.09;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='2'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='0.6'/%3E%3C/svg%3E");
+  animation:grain 4s steps(5) infinite;
+}
+.statusbar{
+  position:absolute;top:0;left:0;right:0;z-index:30;height:44px;
+  display:flex;justify-content:space-between;align-items:center;
+  padding:14px 26px 0;font-family:var(--mono);font-size:12px;color:#eee;
+}
+.statusbar .si{display:flex;gap:6px;align-items:center}
+.gesture-bar{position:absolute;bottom:7px;left:50%;transform:translateX(-50%);width:120px;height:4px;border-radius:4px;background:#ffffff55;z-index:45}
+
+/* ── 看图区 ───────────────────────────────── */
+.photo-stage{
+  position:absolute;inset:0;z-index:1;
+  display:flex;align-items:center;justify-content:center;
+  padding:64px 6px 96px;touch-action:pan-y;cursor:grab;
+}
+.photo-stage:active{cursor:grabbing}
+.photo-stage img{
+  max-width:100%;max-height:100%;border-radius:3px;
+  user-select:none;-webkit-user-drag:none;
+  transition:transform .28s cubic-bezier(.2,.75,.2,1),opacity .3s;
+  box-shadow:0 24px 60px -12px rgba(0,0,0,.85);
+}
+.photo-stage img.swap{opacity:0}
+.screen.tr-fade .photo-stage img.swap{transform:scale(.965)}
+.screen.tr-slide .photo-stage img.swap{transform:translateX(22px)}
+.screen.tr-none .photo-stage img{transition:none}
+.navzone{
+  position:absolute;top:0;bottom:0;width:20%;z-index:6;
+  display:flex;align-items:center;justify-content:center;
+  color:#ffffff6e;opacity:0;transition:opacity .25s;cursor:pointer;
+}
+.navzone:active{opacity:1}
+.navzone svg{width:22px;height:22px}
+.navzone.l{left:0}.navzone.r{right:0}
+
+.topbar{
+  position:absolute;top:44px;left:0;right:0;z-index:10;
+  display:flex;justify-content:space-between;align-items:center;
+  padding:14px 18px;
+  background:linear-gradient(rgba(0,0,0,.62),transparent);
+  font-family:var(--mono);font-size:11px;letter-spacing:.12em;color:#ddd;
+  transition:opacity .3s,transform .3s;
+}
+.topbar .scope{display:flex;align-items:center;gap:8px;cursor:pointer}
+.topbar .scope .fdot{width:5px;height:5px;border-radius:50%;background:var(--dim)}
+.topbar .scope.playing .fdot{background:var(--safelight);box-shadow:0 0 8px var(--safelight);animation:blink 1.2s infinite}
+@keyframes blink{50%{opacity:.3}}
+.topbar .scope span{text-transform:uppercase}
+.topbar .cnt{color:#999}
+
+.botbar{
+  position:absolute;bottom:0;left:0;right:0;z-index:10;
+  display:flex;justify-content:space-between;align-items:center;
+  padding:18px 20px 30px;
+  background:linear-gradient(transparent,rgba(0,0,0,.72));
+  transition:opacity .3s,transform .3s;
+}
+.ibtn{
+  width:46px;height:46px;border-radius:50%;border:1px solid #ffffff22;
+  background:#0e0e12cc;color:#ddd;display:flex;align-items:center;justify-content:center;
+  cursor:pointer;backdrop-filter:blur(6px);transition:all .2s;
+}
+.ibtn svg{width:20px;height:20px}
+.ibtn:hover{border-color:#ffffff55;color:#fff;transform:translateY(-2px)}
+.ibtn.on{color:var(--safelight);border-color:var(--safelight)}
+.ibtn.shuffle{
+  width:56px;height:56px;background:var(--safelight);border:none;color:#160503;
+  box-shadow:0 8px 28px -4px rgba(255,75,46,.55);
+}
+.ibtn.shuffle:hover{background:#ff6448;transform:translateY(-2px) scale(1.04)}
+.ibtn.playing{background:var(--paper);border-color:var(--paper);color:#111}
+.bot-group{display:flex;gap:10px}
+
+/* 心跳动画 */
+@keyframes pop{0%{transform:scale(1)}35%{transform:scale(1.35)}65%{transform:scale(.92)}100%{transform:scale(1)}}
+.ibtn.pop svg{animation:pop .45s cubic-bezier(.2,.75,.3,1.4)}
+
+/* ── 抽屉 ─────────────────────────────────── */
+.scrim{position:absolute;inset:0;z-index:18;background:rgba(0,0,0,.55);opacity:0;pointer-events:none;transition:opacity .3s}
+.scrim.open{opacity:1;pointer-events:auto}
+.drawer{
+  position:absolute;top:0;bottom:0;left:0;width:79%;z-index:20;
+  background:var(--panel);border-right:1px solid var(--line2);
+  transform:translateX(-102%);transition:transform .34s cubic-bezier(.25,.8,.25,1);
+  display:flex;flex-direction:column;padding:58px 0 24px;
+}
+.drawer.open{transform:none}
+.drawer h5{
+  font-family:var(--mono);font-size:10px;letter-spacing:.24em;color:var(--dim);
+  padding:0 22px 14px;border-bottom:1px solid var(--line);
+}
+.drawer h5 b{color:var(--safelight)}
+.drow{
+  display:flex;align-items:center;gap:13px;padding:11px 22px;cursor:pointer;
+  transition:background .15s;position:relative;
+}
+.drow:hover{background:#ffffff08}
+.drow.on{background:#ffffff0a}
+.drow.on::before{content:"";position:absolute;left:0;top:20%;bottom:20%;width:3px;background:var(--safelight)}
+.drow .thumb{
+  width:44px;height:44px;border-radius:8px;flex:none;
+  background-size:cover;background-position:center;border:1px solid var(--line2);
+}
+.drow .nm{font-size:14px;font-weight:500;color:var(--paper);flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.drow .nm small{display:block;font-family:var(--mono);font-size:9.5px;color:var(--dim);letter-spacing:.06em;font-weight:400}
+.drow .ct{font-family:var(--mono);font-size:11px;color:var(--dim)}
+.drow .go-grid{
+  width:30px;height:30px;border-radius:7px;border:1px solid transparent;color:#666;
+  display:flex;align-items:center;justify-content:center;flex:none;cursor:pointer;
+}
+.drow .go-grid:hover{color:var(--paper);border-color:var(--line2)}
+.drow .go-grid svg{width:15px;height:15px}
+.drow.hidden-row .nm{color:var(--dim);text-decoration:line-through}
+.drow.hidden-row .thumb{filter:grayscale(1) brightness(.5)}
+.drow .eyeb{width:30px;height:30px;border:none;background:none;color:var(--dim);cursor:pointer;flex:none;display:flex;align-items:center;justify-content:center}
+.drow .eyeb:hover{color:var(--paper)}
+.drow .eyeb svg{width:16px;height:16px}
+.drawer .favrow .thumb{
+  display:flex;align-items:center;justify-content:center;color:var(--safelight);
+  background:#1a0e0b;font-size:18px;
+}
+.drawer .foot{
+  margin-top:auto;padding:16px 22px 0;border-top:1px solid var(--line);
+  font-family:var(--mono);font-size:9.5px;color:#555;letter-spacing:.1em;line-height:1.9;
+}
+
+/* ── 幻灯片 HUD ───────────────────────────── */
+.hud{
+  position:absolute;bottom:96px;left:14px;right:14px;z-index:16;
+  background:#0c0c10ee;border:1px solid var(--line2);border-radius:16px;
+  backdrop-filter:blur(10px);padding:12px 14px 13px;
+  transform:translateY(140%);opacity:0;transition:all .35s cubic-bezier(.25,.8,.25,1);
+  pointer-events:none;
+}
+.hud.open{transform:none;opacity:1;pointer-events:auto}
+.hud .hd-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.hud .lbl{font-family:var(--mono);font-size:10px;letter-spacing:.2em;color:var(--safelight)}
+.hud .stat{font-family:var(--mono);font-size:10px;color:var(--dim)}
+.hud .chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{
+  font-family:var(--mono);font-size:10.5px;padding:5px 11px;border-radius:99px;
+  border:1px solid var(--line2);color:var(--dim);cursor:pointer;transition:all .15s;
+  letter-spacing:.05em;user-select:none;
+}
+.chip:hover{color:var(--paper)}
+.chip.on{background:var(--paper);color:#111;border-color:var(--paper)}
+.chip.red.on{background:var(--safelight);color:#160503;border-color:var(--safelight)}
+.hud .divider{height:1px;background:var(--line);margin:10px -4px}
+.hud .big-row{display:flex;align-items:center;justify-content:space-between}
+.hud .big-row .left{display:flex;align-items:center;gap:8px}
+.hud .hint{font-family:var(--mono);font-size:9px;color:#555;letter-spacing:.08em}
+.progress{
+  position:absolute;top:0;left:0;height:2px;width:0%;
+  background:var(--safelight);border-radius:2px;
+}
+
+/* ── 网格视图 ─────────────────────────────── */
+.gridview{
+  position:absolute;inset:0;z-index:22;background:var(--film);
+  transform:translateY(102%);transition:transform .36s cubic-bezier(.25,.8,.25,1);
+  display:flex;flex-direction:column;
+}
+.gridview.open{transform:none}
+.gridview .gh{
+  display:flex;align-items:center;gap:12px;padding:56px 18px 12px;border-bottom:1px solid var(--line);
+}
+.gridview .gh .ibtn{width:38px;height:38px;flex:none}
+.gridview .gh .t{flex:1}
+.gridview .gh .t b{font-family:var(--serif);font-size:17px;font-weight:700;display:block}
+.gridview .gh .t span{font-family:var(--mono);font-size:10px;color:var(--dim);letter-spacing:.14em}
+.gridview .gscroll{flex:1;overflow-y:auto;padding:12px;display:grid;grid-template-columns:repeat(3,1fr);gap:4px;align-content:start}
+.gridview .gscroll::-webkit-scrollbar{width:0}
+.gcell{position:relative;aspect-ratio:1;border-radius:4px;overflow:hidden;cursor:pointer;background:var(--panel)}
+.gcell img{width:100%;height:100%;object-fit:cover;transition:transform .3s,opacity .2s}
+.gcell:hover img{transform:scale(1.06)}
+.gcell .fv{position:absolute;top:5px;right:5px;color:var(--safelight);font-size:12px;text-shadow:0 1px 6px #000;opacity:0;transform:scale(.6);transition:all .25s}
+.gcell.faved .fv{opacity:1;transform:none}
+.gcell.cur::after{content:"";position:absolute;inset:0;border:2px solid var(--safelight);border-radius:4px}
+
+/* ── 信息面板 ─────────────────────────────── */
+.infosheet{
+  position:absolute;left:10px;right:10px;bottom:10px;z-index:24;
+  background:#0d0d11f2;border:1px solid var(--line2);border-radius:18px;
+  backdrop-filter:blur(12px);padding:18px 20px 20px;
+  transform:translateY(130%);transition:transform .34s cubic-bezier(.25,.8,.25,1);
+}
+.infosheet.open{transform:none}
+.infosheet .ih{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:12px}
+.infosheet .ih b{font-family:var(--serif);font-size:15px}
+.infosheet .ih span{font-family:var(--mono);font-size:10px;color:var(--safelight);letter-spacing:.16em}
+.infosheet .xrows{display:grid;grid-template-columns:1fr 1fr;gap:7px 20px;font-family:var(--mono);font-size:10.5px}
+.infosheet .xr{display:flex;justify-content:space-between;border-bottom:1px dashed #ffffff10;padding-bottom:5px}
+.infosheet .xr i{font-style:normal;color:var(--dim)}
+.infosheet .xr em{font-style:normal;color:var(--paper)}
+.infosheet .path{grid-column:1/-1;color:var(--gold);word-break:break-all}
+
+/* ── 设置面板 · 紧凑标准版 ─────────────────── */
+.setbtn{
+  display:flex;align-items:center;gap:10px;width:calc(100% - 44px);margin:0 22px;
+  padding:12px 0 4px;border:none;background:none;color:var(--dim);
+  font-family:var(--mono);font-size:11px;letter-spacing:.14em;cursor:pointer;
+}
+.setbtn:hover{color:var(--paper)}
+.setbtn span{color:#555;font-size:9px;margin-left:auto}
+.setbtn svg{width:15px;height:15px}
+.setsheet{
+  position:absolute;left:10px;right:10px;bottom:10px;z-index:26;max-height:76%;overflow-y:auto;
+  background:#0d0d11f5;border:1px solid var(--line2);border-radius:18px;
+  backdrop-filter:blur(12px);padding:0 20px 8px;
+  transform:translateY(130%);transition:transform .34s cubic-bezier(.25,.8,.25,1);
+}
+.setsheet::-webkit-scrollbar{width:0}
+.setsheet.open{transform:none}
+.set-grab{width:36px;height:4px;border-radius:4px;background:#ffffff2a;margin:10px auto 4px}
+.set-head{display:flex;justify-content:space-between;align-items:center;padding:8px 0 12px;border-bottom:1px solid var(--line)}
+.set-head b{font-family:var(--serif);font-weight:700;font-size:16px}
+.xbtn{border:none;background:none;color:var(--dim);font-size:13px;cursor:pointer;padding:4px 6px;margin-right:-6px}
+.xbtn:hover{color:var(--paper)}
+.set-row{border-bottom:1px solid #ffffff0d}
+.set-row{display:flex;justify-content:space-between;align-items:center;gap:14px;padding:13px 0}
+.set-row .lb{font-size:13.5px;color:var(--paper)}
+.set-row.set-link{cursor:pointer}
+.set-row .val{font-family:var(--mono);font-size:10.5px;color:var(--dim);letter-spacing:.03em}
+.set-link .chev{width:14px;height:14px;color:#666;flex:none}
+/* 单选弹窗 */
+.dlg-scrim{position:absolute;inset:0;z-index:28;background:rgba(0,0,0,.5);opacity:0;pointer-events:none;transition:opacity .22s}
+.dlg-scrim.open{opacity:1;pointer-events:auto}
+.dlg{
+  position:absolute;left:50%;top:50%;z-index:30;width:76%;
+  transform:translate(-50%,-46%) scale(.95);opacity:0;pointer-events:none;
+  transition:all .22s cubic-bezier(.25,.8,.25,1);
+  background:#14141a;border:1px solid var(--line2);border-radius:16px;
+  padding:16px 8px 8px;box-shadow:0 30px 70px -20px rgba(0,0,0,.9);
+}
+.dlg.open{transform:translate(-50%,-50%) scale(1);opacity:1;pointer-events:auto}
+.dlg b{display:block;font-family:var(--serif);font-size:14.5px;font-weight:700;padding:0 12px 12px}
+.dop{display:flex;align-items:center;gap:11px;padding:11px 12px;font-size:13.5px;color:var(--dim);cursor:pointer;border-radius:10px}
+.dop:hover{background:#ffffff08;color:var(--paper)}
+.dop i{width:17px;height:17px;border-radius:50%;border:1.5px solid #3a3a44;flex:none;position:relative;transition:border-color .15s}
+.dop.on{color:var(--paper)}
+.dop.on i{border-color:var(--safelight)}
+.dop.on i::after{content:"";position:absolute;inset:3.5px;border-radius:50%;background:var(--safelight)}
+.seg{display:flex;background:#ffffff0d;border-radius:9px;padding:2px;gap:2px;flex:none}
+.seg span{
+  font-family:var(--mono);font-size:10.5px;padding:5px 11px;border-radius:7px;color:var(--dim);
+  cursor:pointer;letter-spacing:.03em;transition:all .15s;user-select:none;white-space:nowrap;
+}
+.seg span:hover{color:var(--paper)}
+.seg span.on{background:var(--paper);color:#111}
+.sw{position:relative;width:42px;height:24px;border-radius:99px;background:#ffffff1c;cursor:pointer;flex:none;transition:background .2s}
+.sw::after{content:"";position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:#9a9a9a;transition:all .2s cubic-bezier(.3,.8,.3,1.2)}
+.sw.on{background:var(--safelight)}
+.sw.on::after{left:21px;background:#fff}
+.pcaption{
+  position:absolute;left:18px;right:18px;bottom:104px;z-index:8;
+  font-family:var(--mono);font-size:9.5px;color:#fffd;letter-spacing:.08em;line-height:1.8;
+  text-shadow:0 1px 8px #000,0 0 20px #000;opacity:0;transition:opacity .35s;pointer-events:none;
+}
+.screen.show-cap .pcaption{opacity:1}
+/* 沉浸模式:播放中无操作自动隐藏控制 */
+.screen.zen .topbar,.screen.zen .botbar{opacity:0}
+.screen.zen .topbar,.screen.zen .botbar,.screen.zen .hud{pointer-events:none}
+.screen.zen .hud{transform:translateY(140%);opacity:0}
+
+/* ── Toast ────────────────────────────────── */
+.toast{
+  position:absolute;top:96px;left:50%;transform:translate(-50%,-14px);z-index:50;
+  background:#0c0c10ee;border:1px solid var(--line2);border-left:3px solid var(--safelight);
+  border-radius:10px;padding:9px 16px;font-family:var(--mono);font-size:11px;letter-spacing:.06em;
+  color:var(--paper);opacity:0;pointer-events:none;transition:all .3s;white-space:nowrap;
+}
+.toast.show{opacity:1;transform:translate(-50%,0);pointer-events:auto}
+
+/* ── 操作提示 ─────────────────────────────── */
+.howto{
+  margin-top:26px;display:flex;flex-wrap:wrap;gap:8px;justify-content:center;
+  font-family:var(--mono);font-size:10px;color:var(--dim);letter-spacing:.08em;
+}
+.howto kbd{
+  border:1px solid var(--line2);border-bottom-width:2px;border-radius:5px;
+  padding:2px 7px;color:var(--paper);font-family:var(--mono);font-size:10px;margin:0 2px;
+}
+
+/* ── 章节 ─────────────────────────────────── */
+section.blk{padding:64px 0;border-top:1px solid var(--line)}
+.sect-h{display:flex;align-items:baseline;gap:18px;margin-bottom:36px}
+.sect-h .sn{font-family:var(--mono);font-size:11px;color:var(--safelight);letter-spacing:.2em}
+.sect-h h2{font-family:var(--serif);font-weight:900;font-size:clamp(26px,3.4vw,38px)}
+.sect-h .sub{font-family:var(--mono);font-size:11px;color:var(--dim);letter-spacing:.12em}
+
+.tokens{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.tok{border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.tok .sw{height:74px;position:relative}
+.tok .sw.trans{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");background-color:#0a0a0c}
+.tok .sw .filmno{position:absolute;right:8px;bottom:6px;font-family:var(--mono);font-size:9px;color:#ffffff66;letter-spacing:.1em}
+.tok .tt{padding:10px 12px;background:var(--panel)}
+.tok .tt b{display:block;font-size:12.5px;font-weight:700}
+.tok .tt span{font-family:var(--mono);font-size:10px;color:var(--dim)}
+.tok .tt .use{display:block;font-size:10.5px;color:var(--dim);font-family:var(--sans);margin-top:3px}
+
+.typespec{border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.trow{display:grid;grid-template-columns:170px 1fr;gap:20px;padding:26px 28px;border-bottom:1px solid var(--line);align-items:center}
+.trow:last-child{border-bottom:none}
+.trow .tl b{font-family:var(--mono);font-size:11px;color:var(--paper);display:block;letter-spacing:.1em}
+.trow .tl span{font-family:var(--mono);font-size:10px;color:var(--dim)}
+.trow .tv{font-size:clamp(20px,2.6vw,30px);line-height:1.3;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.tv.serif{font-family:var(--serif);font-weight:900}
+.tv.serif i{font-family:var(--serif);font-style:italic;font-weight:500;color:var(--dim);font-size:.72em;margin-left:.4em}
+.tv.mono{font-family:var(--mono);font-size:15px;color:var(--gold)}
+.tv.sans{font-family:var(--sans);font-size:16px;font-weight:500}
+
+.spec-table{width:100%;border-collapse:collapse;font-size:13px}
+.spec-table th{
+  font-family:var(--mono);font-size:10px;letter-spacing:.18em;color:var(--dim);
+  text-align:left;padding:10px 14px;border-bottom:1px solid var(--line2);font-weight:500;
+}
+.spec-table td{padding:13px 14px;border-bottom:1px solid var(--line);color:var(--dim);vertical-align:top}
+.spec-table td:first-child{color:var(--paper);white-space:nowrap}
+.spec-table td.k{font-family:var(--mono);font-size:11.5px;color:var(--gold);white-space:nowrap}
+.spec-table code{font-family:var(--mono);font-size:11px;background:#ffffff0a;padding:2px 7px;border-radius:5px;color:var(--paper)}
+
+.checkgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.chk{background:var(--panel);padding:20px 22px}
+.chk b{display:flex;align-items:center;gap:9px;font-size:14px;font-weight:700;margin-bottom:6px}
+.chk b .tick{font-family:var(--mono);color:var(--safelight);font-size:12px}
+.chk p{font-size:12px;color:var(--dim);line-height:1.7}
+
+footer{
+  border-top:1px solid var(--line);margin-top:40px;padding:34px 0 46px;
+  display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;
+  font-family:var(--mono);font-size:10.5px;color:#666;letter-spacing:.1em;line-height:2;
+}
+footer .fr{text-align:right}
+footer em{color:var(--safelight);font-style:normal}
+
+/* ── 响应式 ───────────────────────────────── */
+@media (max-width:960px){
+  .hero-grid{grid-template-columns:1fr}
+  .phone{transform:scale(.94);transform-origin:top center;margin-bottom:-40px}
+  .stage-wrap{order:-1}
+}
+@media (max-width:460px){
+  .phone{width:340px;height:706px}
+  .trow{grid-template-columns:1fr;gap:8px}
+}
+
+/* 速度滑杆 */
+.speed{display:flex;align-items:center;gap:10px;flex:1;min-width:0}
+.speed input[type=range]{-webkit-appearance:none;appearance:none;flex:1;height:3px;border-radius:2px;background:#33333d;outline:none;cursor:pointer}
+.speed input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:15px;height:15px;border-radius:50%;background:var(--safelight);border:3px solid #14141a;box-shadow:0 0 0 1.5px #ffffff22}
+.speed .sval{font-family:var(--mono);font-size:10.5px;color:var(--paper);width:32px;text-align:right;flex:none}
+/* 空状态 */
+.empty{position:absolute;inset:0;z-index:6;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:9px;background:#08080a;opacity:0;pointer-events:none;transition:opacity .25s}
+.empty.show{opacity:1;pointer-events:auto}
+.empty .eico{font-size:32px;color:#45454e}
+.empty b{font-family:var(--serif);font-size:16px;color:var(--paper)}
+.empty p{font-size:11.5px;color:var(--dim);text-align:center;line-height:1.8;margin:0}
+.empty button{margin-top:10px;background:none;border:1px solid var(--safelight);color:var(--safelight);font:500 12px var(--sans);padding:7px 20px;border-radius:999px;cursor:pointer}
+.nongoals{margin-top:20px;text-align:center;font-family:var(--mono);font-size:10px;color:#5a5560;letter-spacing:.08em}
+/* 放映进度细线 */
+.edgebar{position:absolute;left:0;bottom:0;height:2px;width:0;background:#ffffff26;z-index:11;pointer-events:none}
+/* 首启权限屏 */
+.permscreen{position:absolute;inset:0;z-index:47;display:flex;align-items:center;justify-content:center;background:#08080a;opacity:0;pointer-events:none;transition:opacity .3s}
+.permscreen.open{opacity:1;pointer-events:auto}
+.perm-card{text-align:center;padding:0 26px}
+.perm-card .pico{width:54px;height:54px;margin:0 auto 16px;border-radius:50%;background:#1a0e0b;display:flex;align-items:center;justify-content:center;color:var(--safelight);font-size:20px;border:1px solid #3a201a}
+.perm-card .pico.dim{color:#45454e;background:#15151a;border-color:var(--line2)}
+.perm-card b{display:block;font-family:var(--serif);font-size:17px;color:var(--paper);margin-bottom:10px}
+.perm-card p{font-size:12px;color:var(--dim);line-height:1.9;margin:0 0 20px}
+.pbtn{display:block;width:100%;margin-top:10px;padding:11px 0;border-radius:999px;font:500 13px var(--sans);cursor:pointer}
+.pbtn.primary{background:var(--safelight);border:none;color:#fff}
+.pbtn.ghost{background:none;border:1px solid var(--line2);color:var(--dim)}
+/* toast 动作按钮 */
+.toast button{margin-left:14px;background:none;border:1px solid var(--safelight);color:var(--safelight);font:500 11px var(--sans);padding:3px 12px;border-radius:999px;cursor:pointer;letter-spacing:.05em}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+  <div class="topstrip rv" style="--d:.05s">
+    <span><b>ZOETROPE</b>&nbsp;/&nbsp;走马灯&nbsp;·&nbsp;设计示例</span>
+    <span><span class="dot">●</span>&nbsp;SPEC&nbsp;ZT-01&nbsp;·&nbsp;ANDROID&nbsp;·&nbsp;2026</span>
+  </div>
+
+  <!-- ══════════ HERO ══════════ -->
+  <div class="hero">
+    <div class="hero-grid">
+
+      <div>
+        <div class="kicker rv" style="--d:.12s">DESIGN MOCKUP — 暗房 DARKROOM 语言</div>
+        <h1 class="rv" style="--d:.2s">走马灯<span class="en"><em>Zoetrope</em> — 把整部手机,变成一只暗房抽屉</span></h1>
+        <p class="tagline rv" style="--d:.32s">
+          大图优先的个人看图 App。打开即全屏,<strong>左右滑切图</strong>,侧滑抽屉换文件夹;
+          灵魂功能<strong>随机幻灯片</strong>——洗牌算法保证一轮不重复,像暗房里随机显影一张旧底片。
+          下面这台"手机"是可交互的:试试滑动、按 <strong>空格</strong>、或点那个红色的洗牌键。
+        </p>
+        <div class="meta-row rv" style="--d:.42s">
+          <span>STACK&nbsp;<b>Kotlin&nbsp;·&nbsp;Compose</b></span>
+          <span>SOURCE&nbsp;<b>MediaStore</b></span>
+          <span>SCALE&nbsp;<b>1–5 万张</b></span>
+          <span>BUILD&nbsp;<b>GitHub&nbsp;Actions</b></span>
+        </div>
+
+        <div class="notes rv" style="--d:.5s;margin-top:38px">
+          <div class="note">
+            <span class="no">01</span><span class="nm">大图优先</span>
+            <p>打开即全屏看图,无相册网格挡路。启动首图可配置:<code>接着上次看 / 随机 / 固定文件夹 / 最新</code>,默认接着上次看;首次启动没有「上次」,回退随机一张。</p>
+          </div>
+          <div class="note">
+            <span class="no">02</span><span class="nm">侧滑抽屉</span>
+            <p>左缘滑出文件夹列表(封面 + 张数),点选即跳。行尾 ⊞ 进入"印样"网格做批量管理;不想看的文件夹可隐藏,并自动移出随机池。</p>
+          </div>
+          <div class="note">
+            <span class="no">03</span><span class="nm">随机幻灯片</span>
+            <p>范围三选一:<code>当前夹 / 收藏 / 全库</code>。Fisher–Yates 洗牌,一轮内零重复;速度 1–30s 可调,播完自动重洗。计数器实时显示"已显影 n / N"。</p>
+          </div>
+          <div class="note">
+            <span class="no">04</span><span class="nm">收藏与隐藏</span>
+            <p>看图时点心形收藏,收藏夹本身就是一个随机范围;文件夹可隐藏、单张可长按「不再显示」,双双移出随机池,但文件永远不动。</p>
+          </div>
+          <div class="note">
+            <span class="no">05</span><span class="nm">安全删除</span>
+            <p>删除走系统回收站机制,可恢复;另有批量管理、EXIF 元信息面板。示例图均为程序生成的"底片",实机将扫描真实照片。</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- 手机原型 -->
+      <div class="stage-wrap rv" style="--d:.3s">
+        <div class="safelight-glow"></div>
+        <div class="phone" id="phone">
+          <div class="screen" id="screen">
+            <div class="statusbar">
+              <span>23:47</span>
+              <span class="si">
+                <svg width="14" height="11" viewBox="0 0 14 11" fill="#eee"><path d="M7 8.5 8.8 10.4 10.6 8.5 7 4.9 3.4 8.5 5.2 10.4zM.6 3.9C4.3.4 9.7.4 13.4 3.9l-.9 1C9.3 1.9 4.7 1.9 1.5 4.9zM3 6.4c2.3-2 5.7-2 8 0l-.9 1c-1.7-1.5-4.5-1.5-6.2 0z"/></svg>
+                <svg width="22" height="11" viewBox="0 0 22 11"><rect x=".5" y=".5" width="17" height="10" rx="2.5" fill="none" stroke="#eee"/><rect x="2" y="2" width="11" height="7" rx="1.2" fill="#ff4b2e"/><path d="M19 3.5v4c1.2-.4 1.2-3.6 0-4z" fill="#eee"/></svg>
+              </span>
+            </div>
+
+            <!-- 看图层 -->
+            <div class="photo-stage" id="stage">
+              <img id="photoMain" alt="">
+              <div class="navzone l" data-nav="-1"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M15 5l-7 7 7 7"/></svg></div>
+              <div class="navzone r" data-nav="1"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M9 5l7 7-7 7"/></svg></div>
+            </div>
+
+            <!-- 空状态 -->
+            <div class="empty" id="emptyState">
+              <div class="eico">◌</div>
+              <b id="emptyTitle">这个范围没有照片</b>
+              <p id="emptyText"></p>
+              <button id="emptyBtn">回全库看看</button>
+            </div>
+
+            <!-- 顶栏 -->
+            <div class="topbar" id="topbar">
+              <div class="scope" id="scopeLabel"><span class="fdot"></span><span id="scopeName">全库</span></div>
+              <span class="cnt" id="counter">01 / 21</span>
+            </div>
+
+            <!-- 底栏 -->
+            <div class="botbar" id="botbar">
+              <div class="bot-group">
+                <button class="ibtn" id="btnDrawer" title="抽屉 (D)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h10"/></svg></button>
+              </div>
+              <div class="bot-group">
+                <button class="ibtn" id="btnFav" title="收藏 (F)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M12 20.7 4.3 13c-2-2-1.8-5.2.3-7a4.7 4.7 0 0 1 6.4.3l1 1.1 1-1.1a4.7 4.7 0 0 1 6.4-.3c2.1 1.8 2.3 5 .3 7z"/></svg></button>
+                <button class="ibtn" id="btnInfo" title="信息 (I)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="8.6"/><path d="M12 11.2v5"/><circle cx="12" cy="8" r="0.6" fill="currentColor" stroke="none"/></svg></button>
+                <button class="ibtn" id="btnDel" title="移入回收站"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 7h16M9.5 7V5h5v2M6.5 7l1 13h9l1-13M10 11v5M14 11v5"/></svg></button>
+              </div>
+              <div class="bot-group">
+                <button class="ibtn shuffle" id="btnShuffle" title="随机幻灯片 (空格)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16.5 3.5h4v4M3.5 20.5 20.2 3.8M20.5 15.5v4h-4M14.8 14.8l5.4 5.4M3.5 3.5l5 5"/></svg></button>
+              </div>
+            </div>
+
+            <!-- 幻灯片 HUD -->
+            <div class="hud" id="hud">
+              <div class="progress" id="progress"></div>
+              <div class="hd-row">
+                <span class="lbl">◍ RANDOM SLIDESHOW</span>
+                <span style="display:flex;gap:10px;align-items:center"><span class="stat" id="slStat">已显影 0 / 21</span><button class="xbtn" id="hudClose" title="关闭幻灯片">✕</button></span>
+              </div>
+              <div class="chips" id="scopeChips">
+                <span class="chip" data-scope="folder">当前夹</span>
+                <span class="chip" data-scope="fav">收藏</span>
+                <span class="chip on" data-scope="all">全库</span>
+              </div>
+              <div class="divider"></div>
+              <div class="big-row">
+                <div class="left">
+                  <button class="ibtn playing" id="btnPlay" style="width:38px;height:38px" title="暂停/播放"><svg id="playIcon" viewBox="0 0 24 24" fill="currentColor"><rect x="6.5" y="5" width="4" height="14" rx="1"/><rect x="13.5" y="5" width="4" height="14" rx="1"/></svg></button>
+                  <div class="speed">
+                    <input type="range" id="speedSlider" min="1" max="30" step="1" value="3">
+                    <span class="sval" id="speedVal">3s</span>
+                  </div>
+                </div>
+                <span class="hint">一轮不重复<br>播完自动重洗</span>
+              </div>
+            </div>
+
+            <!-- 抽屉 -->
+            <div class="scrim" id="scrim"></div>
+            <div class="drawer" id="drawer">
+              <h5>⟨&nbsp;FOLDERS&nbsp;/&nbsp;<b>侧滑抽屉</b>&nbsp;⟩</h5>
+              <div id="drawerList"></div>
+              <button class="setbtn" id="btnSettings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/><circle cx="9" cy="7" r="2.3" fill="#101014"/><circle cx="15.5" cy="12" r="2.3" fill="#101014"/><circle cx="7.5" cy="17" r="2.3" fill="#101014"/></svg>设置<span>SETTINGS&nbsp;·&nbsp;PREFS</span></button>
+              <div class="foot">HIDE&nbsp;= 移出随机池,文件不动</div>
+            </div>
+
+            <!-- 网格(印样) -->
+            <div class="gridview" id="gridview">
+              <div class="gh">
+                <button class="ibtn" id="gridBack"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M15 5l-7 7 7 7"/></svg></button>
+                <div class="t"><b id="gridTitle">相机</b><span id="gridSub">CONTACT SHEET · 7 FRAMES</span></div>
+              </div>
+              <div class="gscroll" id="gscroll"></div>
+            </div>
+
+            <!-- 信息面板 -->
+            <div class="infosheet" id="infosheet">
+              <div class="ih"><b id="infoTitle">ZT_0042.svg</b><span style="display:flex;gap:12px;align-items:center"><span style="font-family:var(--mono);font-size:10px;color:var(--safelight);letter-spacing:.16em">EXIF</span><button class="xbtn" id="infoClose">✕</button></span></div>
+              <div class="xrows" id="infoRows"></div>
+            </div>
+
+            <!-- 设置面板 · 紧凑标准版 -->
+            <div class="setsheet" id="setsheet">
+              <div class="set-grab"></div>
+              <div class="set-head"><b>设置</b><button class="xbtn" id="setClose">✕</button></div>
+
+              <div class="set-row set-link" id="startupRow">
+                <span class="lb">启动首图</span>
+                <span class="val" id="startupVal">接着上次看</span>
+                <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 5l7 7-7 7"/></svg>
+              </div>
+
+              <div class="set-row"><span class="lb">启动自动放映</span><div class="sw" data-group="autoplay"></div></div>
+
+              <div class="set-row"><span class="lb">播完一轮</span>
+                <div class="seg chips" data-group="loop">
+                  <span data-v="reshuffle" class="on">重洗继续</span><span data-v="stop">停止</span>
+                </div>
+              </div>
+
+              <div class="set-row"><span class="lb">切图过渡</span>
+                <div class="seg chips" data-group="transition">
+                  <span data-v="fade" class="on">淡入</span><span data-v="slide">位移</span><span data-v="none">无</span>
+                </div>
+              </div>
+
+              <div class="set-row"><span class="lb">信息角标</span><div class="sw" data-group="caption"></div></div>
+
+            <div class="set-row"><span class="lb">进度细线</span><div class="sw" data-group="edgebar"></div></div>
+
+              <div class="set-row"><span class="lb">主题</span>
+                <div class="seg chips" data-group="theme">
+                  <span data-v="system" class="on">跟随系统</span><span data-v="dark">纯黑</span>
+                </div>
+              </div>
+
+              <div class="set-row" id="aboutRow" title="点按重看首启权限屏"><span class="lb">关于</span><span class="val">走马灯 ZT-01 · v1.0.0 · BUILD 42</span></div>
+            </div>
+
+            <!-- 单选弹窗:启动首图 -->
+            <div class="dlg-scrim" id="dlgScrim"></div>
+            <div class="dlg" id="startupDlg">
+              <b>启动首图</b>
+              <div class="dop" data-v="last"><i></i>接着上次看</div>
+              <div class="dop" data-v="random"><i></i>随机一张</div>
+              <div class="dop" data-v="fixed"><i></i>固定文件夹</div>
+              <div class="dop" data-v="newest"><i></i>最新一张</div>
+            </div>
+
+            <!-- 首启权限屏 -->
+            <div class="permscreen" id="permscreen">
+              <div class="perm-card" id="permAsk">
+                <div class="pico">◉</div>
+                <b>走马灯要读你的照片</b>
+                <p>只在本机浏览和随机放映,不联网、不上传。<br>下一步系统会询问照片权限,请点「允许」。</p>
+                <button class="pbtn primary" id="permGrant">授权,开始翻图</button>
+                <button class="pbtn ghost" id="permDeny">暂不</button>
+              </div>
+              <div class="perm-card" id="permDenied" style="display:none">
+                <div class="pico dim">◌</div>
+                <b>还没有照片权限</b>
+                <p>没有权限,走马灯无图可放。<br>可以去系统设置里重新授权。</p>
+                <button class="pbtn primary" id="permRetry">去授权</button>
+              </div>
+            </div>
+
+            <div class="edgebar" id="edgebar"></div>
+            <div class="pcaption" id="pcaption"></div>
+            <div class="toast" id="toast"></div>
+            <div class="grain"></div>
+            <div class="gesture-bar"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="howto rv" style="--d:.6s">
+      <span><kbd>←</kbd><kbd>→</kbd> 切图</span>
+      <span><kbd>空格</kbd> 幻灯片开关</span>
+      <span><kbd>D</kbd> 抽屉</span>
+      <span><kbd>F</kbd> 收藏</span>
+      <span><kbd>长按</kbd> 不再显示</span>
+      <span><kbd>I</kbd> 信息</span>
+      <span><kbd>Esc</kbd> 关闭/停止</span>
+      <span>播放中 轻点屏幕 呼出/隐藏控制</span>
+      <span>· 手机上:滑动 / 点按</span>
+    </div>
+  </div>
+
+  <!-- ══════════ 色板 ══════════ -->
+  <section class="blk">
+    <div class="sect-h rv"><span class="sn">02</span><h2>暗房色板</h2><span class="sub">AMOLED TRUE-BLACK&nbsp;·&nbsp;SAFELIGHT ACCENT</span></div>
+    <div class="tokens rv" style="--d:.1s">
+      <div class="tok"><div class="sw" style="background:#08080a"><span class="filmno">ISO 100</span></div><div class="tt"><b>片基黑 Film</b><span>#08080A</span><span class="use">全局底色,OLED 省电,照片最跳</span></div></div>
+      <div class="tok"><div class="sw" style="background:#101014"></div><div class="tt"><b>面板黑 Panel</b><span>#101014</span><span class="use">抽屉 / 面板 / HUD 底</span></div></div>
+      <div class="tok"><div class="sw" style="background:#ff4b2e"></div><div class="tt"><b>安全灯红 Safelight</b><span>#FF4B2E</span><span class="use">唯一强调色:洗牌键 / 进行中 / 收藏</span></div></div>
+      <div class="tok"><div class="sw" style="background:#e8a33d"></div><div class="tt"><b>钨丝金 Tungsten</b><span>#E8A33D</span><span class="use">元数据 / 文件路径等"暗房标注"</span></div></div>
+      <div class="tok"><div class="sw" style="background:#ede8df"></div><div class="tt"><b>相纸白 Paper</b><span>#EDE8DF</span><span class="use">正文与标题,暖白不刺眼</span></div></div>
+      <div class="tok"><div class="sw trans"></div><div class="tt"><b>胶片颗粒 Grain</b><span>feTurbulence</span><span class="use">全局 5% 噪点 + 屏内 9%,放映感</span></div></div>
+    </div>
+  </section>
+
+  <!-- ══════════ 字体 ══════════ -->
+  <section class="blk">
+    <div class="sect-h rv"><span class="sn">03</span><h2>字体系统</h2><span class="sub">SERIF&nbsp;DISPLAY&nbsp;+&nbsp;MONO&nbsp;METADATA</span></div>
+    <div class="typespec rv" style="--d:.1s">
+      <div class="trow">
+        <div class="tl"><b>DISPLAY</b><span>Fraunces 900 / Noto Serif SC</span></div>
+        <div class="tv serif">走马灯转出旧时光<i>Zoetrope, darkroom, 24 frames</i></div>
+      </div>
+      <div class="trow">
+        <div class="tl"><b>UI BODY</b><span>Noto Sans SC 400/500</span></div>
+        <div class="tv sans">打开即全屏 · 左右滑切图 · 侧滑换文件夹 · 洗牌不重复</div>
+      </div>
+      <div class="trow">
+        <div class="tl"><b>METADATA</b><span>IBM Plex Mono 400/500</span></div>
+        <div class="tv mono">2026:09:02 23:47 · f/1.8 · ISO 400 · 3024×4032 · /storage/emulated/0/DCIM</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════ 交互规格 ══════════ -->
+  <section class="blk">
+    <div class="sect-h rv"><span class="sn">04</span><h2>交互规格</h2><span class="sub">GESTURES&nbsp;&amp;&nbsp;STATES</span></div>
+    <table class="spec-table rv" style="--d:.1s">
+      <thead><tr><th>操作</th><th>手势 / 键</th><th>行为</th></tr></thead>
+      <tbody>
+        <tr><td>切图</td><td class="k">swipe ←/→ · ArrowKeys</td><td>当前范围内顺序切换,照片带位移 + 淡入过渡</td></tr>
+        <tr><td>随机幻灯片</td><td class="k">SPACE · 洗牌键</td><td>打开 HUD,自动播放;暂停/继续/调速(1–30s)皆在 HUD 内完成</td></tr>
+        <tr><td>切换范围</td><td class="k">HUD chips</td><td>当前夹 / 收藏 / 全库,切换即重建洗牌队列,播放不断</td></tr>
+        <tr><td>换文件夹</td><td class="k">左缘右滑 · D</td><td>抽屉列出封面与张数;隐藏行可一键恢复</td></tr>
+        <tr><td>印样网格</td><td class="k">抽屉行尾 ⊞</td><td>进入该文件夹缩略图网格,点格回到大图对应位置(批量管理入口)</td></tr>
+        <tr><td>收藏</td><td class="k">F · 心形键</td><td>心形弹跳反馈;收藏夹可作随机范围</td></tr>
+        <tr><td>不再显示</td><td class="k">长按 0.5s</td><td>移出随机池(文件不动),toast 可撤销;抽屉「已忽略」批量恢复</td></tr>
+        <tr><td>缩放</td><td class="k">双击 · 捏合</td><td>双击 1x↔2.5x;捏合连续缩放,拖动看局部</td></tr>
+        <tr><td>元信息</td><td class="k">I</td><td>底部信息板:时间 / 分辨率 / EXIF / 文件路径</td></tr>
+        <tr><td>删除</td><td class="k">底栏</td><td>走系统回收站(可恢复),toast 一键撤销</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- ══════════ 功能清单 ══════════ -->
+  <section class="blk">
+    <div class="sect-h rv"><span class="sn">05</span><h2>共识清单</h2><span class="sub">v1&nbsp;SCOPE&nbsp;·&nbsp;FROM&nbsp;GRILL-ME</span></div>
+    <div class="checkgrid rv" style="--d:.1s">
+      <div class="chk"><b><span class="tick">[✓]</span>随机幻灯片</b><p>三范围 + 洗牌零重复 + 速度可调 + 播完重洗。灵魂功能。</p></div>
+      <div class="chk"><b><span class="tick">[✓]</span>大图优先浏览</b><p>全屏为主界面,启动首图可配置,默认"接着上次看"。</p></div>
+      <div class="chk"><b><span class="tick">[✓]</span>文件夹抽屉</b><p>MediaStore 按目录分组,混合来源统一为文件夹视图。</p></div>
+      <div class="chk"><b><span class="tick">[✓]</span>收藏 + 收藏内随机</b><p>心形一键收藏,收藏即随机池。</p></div>
+      <div class="chk"><b><span class="tick">[✓]</span>隐藏文件夹</b><p>表情包、图标缓存不再污染随机池,随时可恢复。</p></div>
+      <div class="chk"><b><span class="tick">[✓]</span>安全删除</b><p>回收站机制,误删可救,toast 一键撤销。</p></div>
+      <div class="chk"><b><span class="tick">[✓]</span>批量管理</b><p>印样网格多选删除/移动(示意入口,交互同系统相册)。</p></div>
+      <div class="chk"><b><span class="tick">[✓]</span>图片信息</b><p>拍摄时间、分辨率、路径、EXIF 一屏读完。</p></div>
+      <div class="chk"><b><span class="tick">[✓]</span>纯看图 · 无视频</b><p>MediaStore 只取图片,随机池/网格/信息面板均不含视频。</p></div>
+      <div class="chk"><b><span class="tick">[✓]</span>单张不再显示</b><p>长按 0.5s 移出随机池,文件不动;抽屉「已忽略」可随时恢复。</p></div>
+      <div class="chk"><b><span class="tick">[✓]</span>双击 + 捏合缩放</b><p>双击 1x↔2.5x,捏合连续缩放,拖动看局部。</p></div>
+      <div class="chk"><b><span class="tick">[✓]</span>参数自动记住</b><p>速度 / 范围 / 播完行为跨启动记忆,零设置项。</p></div>
+      <div class="chk"><b><span class="tick">[✓]</span>首启流程</b><p>权限说明屏 → 扫描 → 随机一张开场(无「上次」可接);拒绝授权给空状态与重试。数据源唯一 = 手机相册(MediaStore),无导入;部分授权时随机池仅含已选照片并提示放开。</p></div>
+    </div>
+    <div class="nongoals">不做 · 视频 / 分享面板 / 音量键翻页 / 睡眠定时器 / 收藏备份 / 冷门加权 / 文件夹选择器 / 厂商私密相册(系统隔离,无 API)&ensp;—&ensp;v2 候选 · 每日一张小组件</div>
+    <footer>
+      <span>ZOETROPE · 走马灯<br>DESIGN MOCKUP ZT-01 — 示例图片为程序生成"底片"</span>
+      <span class="fr">KOTLIN · JETPACK COMPOSE · MEDIASTORE · PAGING3 · COIL<br>GITHUB ACTIONS 云端打包 · <em>私装 APK · 不上架</em></span>
+    </footer>
+  </section>
+
+</div>
+
+<script>
+/* ════════════════════════════════════════════
+   走马灯 Zoetrope · 交互原型
+   照片 = 程序生成的 SVG "底片"(暗房主题)
+   ════════════════════════════════════════════ */
+const mulberry32 = a => () => {
+  a |= 0; a = a + 0x6D2B79F5 | 0;
+  let t = Math.imul(a ^ a >>> 15, 1 | a);
+  t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+  return ((t ^ t >>> 14) >>> 0) / 4294967296;
+};
+
+const PALETTES = [
+  ['#160a06','#ff4b2e','#ffb347','#52180c'],   // 安全灯暮色
+  ['#041311','#0e7c6b','#17beb8','#efe6d5'],   // 暗房青
+  ['#190606','#8e1b1b','#e8a33d','#f5efe6'],   // 赤金
+  ['#070c16','#1e3a5f','#5aa9e6','#f2e9dc'],   // 蓝调之夜
+  ['#0b110b','#2e5339','#c9a227','#f5efe6'],   // 金叶森林
+  ['#1a0c10','#a64d45','#e7b10a','#f2e9dc'],   // 玫瑰砂
+];
+
+function artwork(seed, w, h){
+  const R = mulberry32(seed);
+  const P = PALETTES[Math.floor(R()*PALETTES.length)];
+  const pick = () => P[1 + Math.floor(R()*(P.length-1))];
+  let s = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${w} ${h}">`;
+  // 底渐变
+  const ang = Math.floor(R()*360), c0 = P[0], c1 = P[1];
+  s += `<defs><linearGradient id="g" gradientTransform="rotate(${ang} .5 .5)">
+        <stop offset="0" stop-color="${c0}"/><stop offset="1" stop-color="${c1}"/>
+        </linearGradient>
+        <filter id="b"><feGaussianBlur stdDeviation="${Math.round(Math.min(w,h)/9)}"/></filter></defs>`;
+  s += `<rect width="${w}" height="${h}" fill="url(#g)"/>`;
+  // 大光斑(虚焦)
+  const blobs = 2 + Math.floor(R()*2);
+  for(let i=0;i<blobs;i++){
+    s += `<circle cx="${R()*w}" cy="${R()*h}" r="${(0.18+R()*0.3)*Math.min(w,h)}" fill="${pick()}" opacity="${(0.25+R()*0.35).toFixed(2)}" filter="url(#b)"/>`;
+  }
+  // 地平线 / 色带
+  if(R()>0.35){
+    const y = h*(0.35+R()*0.4);
+    s += `<rect x="0" y="${y}" width="${w}" height="${h*(0.06+R()*0.22)}" fill="${pick()}" opacity="${(0.3+R()*0.4).toFixed(2)}"/>`;
+  }
+  // 几何笔触
+  const strokes = 1 + Math.floor(R()*3);
+  for(let i=0;i<strokes;i++){
+    const kind = R();
+    if(kind < 0.45){ // 弧
+      s += `<path d="M ${R()*w} ${R()*h} A ${R()*w/2} ${R()*h/2} 0 0 1 ${R()*w} ${R()*h}" fill="none" stroke="${pick()}" stroke-width="${(1+R()*4).toFixed(1)}" opacity="0.75"/>`;
+    } else if(kind < 0.8){ // 圆环
+      s += `<circle cx="${R()*w}" cy="${R()*h}" r="${(0.08+R()*0.2)*Math.min(w,h)}" fill="none" stroke="${pick()}" stroke-width="${(1+R()*3).toFixed(1)}" opacity="0.8"/>`;
+    } else { // 散点短线
+      let d='';
+      for(let k=0;k<12;k++) d += `M ${R()*w} ${R()*h} l 2 8 `;
+      s += `<path d="${d}" stroke="${pick()}" stroke-width="1.4" opacity="0.55"/>`;
+    }
+  }
+  // 颗粒
+  s += `<rect width="${w}" height="${h}" filter="url(#nb)" opacity="0.05"/>`;
+  s = s.replace('<defs>', `<defs><filter id="nb"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2"/></filter>`);
+  s += '</svg>';
+  return 'data:image/svg+xml,' + encodeURIComponent(s);
+}
+
+/* ── 资料库 ── */
+const FOLDERS = [
+  {id:'camera',  name:'相机',   path:'/DCIM/Camera',        seeds:[11,12,13,14,15,16,17], ar:[[3,4],[3,4],[16,10],[3,4],[1,1],[3,4],[16,10]]},
+  {id:'shots',   name:'截图',   path:'/Pictures/Screenshots',seeds:[21,22,23,24,25],      ar:[[9,16],[9,16],[1,1],[9,16],[9,16]]},
+  {id:'wechat',  name:'微信',   path:'/Pictures/WeiXin',    seeds:[31,32,33,34],          ar:[[3,4],[1,1],[3,4],[3,4]]},
+  {id:'wall',    name:'壁纸',   path:'/Pictures/Wallpapers',seeds:[41,42,43],             ar:[[9,16],[9,16],[9,16]]},
+  {id:'sketch',  name:'涂鸦',   path:'/Pictures/Sketches',  seeds:[51,52],                ar:[[1,1],[3,4]]},
+  {id:'sticker', name:'表情包', path:'/Pictures/Stickers',  seeds:[61,62,63],             ar:[[1,1],[1,1],[1,1]], hidden:true},
+];
+const PHOTOS = [];
+let uid = 0;
+FOLDERS.forEach(f => f.seeds.forEach((sd,i) => {
+  const [aw,ah] = f.ar[i];
+  PHOTOS.push({
+    id: uid++,
+    folder: f.id,
+    src: artwork(sd*7919, aw*160, ah*160),
+    date: `202${2+Math.floor(sd/30)%4}:${String(1+sd%12).padStart(2,'0')}:${String(1+(sd*3)%28).padStart(2,'0')} ${String(sd%24).padStart(2,'0')}:${String((sd*7)%60).padStart(2,'0')}`,
+    iso: [100,200,400,800,1600][sd%5],
+    fn: [1.8,2.0,2.8,4.0][sd%4],
+    w: aw*1008, h: ah*1008,
+    file: `ZT_${String(1000+sd).slice(1)}.svg`,
+  });
+}));
+
+/* ── 状态 ── */
+const S = {
+  scope:'all',           // all | folder:<id> | fav
+  idx:0,
+  favs:new Set([2,9,15]),
+  hidden:new Set(['sticker']),
+  ignored:new Set(),
+  playing:false, speed:3, round:1,
+  queue:[], qp:0,         // 洗牌队列
+  gridFolder:null,
+};
+
+const $ = id => document.getElementById(id);
+const stage=$('stage'), img=$('photoMain'), topbar=$('topbar'), botbar=$('botbar'),
+      drawer=$('drawer'), scrim=$('scrim'), hud=$('hud'), toastEl=$('toast'),
+      gridview=$('gridview'), infosheet=$('infosheet'), progress=$('progress');
+
+/* ── 工具 ── */
+const folderById = id => FOLDERS.find(f=>f.id===id);
+function pool(){
+  let list = PHOTOS.filter(p => !S.hidden.has(p.folder) && !S.ignored.has(p.id));
+  if(S.scope==='fav') list = list.filter(p=>S.favs.has(p.id));
+  else if(S.scope.startsWith('folder:')) list = list.filter(p=>p.folder===S.scope.split(':')[1]);
+  return list;
+}
+function scopeName(){
+  if(S.scope==='fav') return '收藏';
+  if(S.scope==='all') return '全库';
+  return folderById(S.scope.split(':')[1]).name;
+}
+function shuffled(arr){
+  const a=[...arr];
+  for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}
+  return a;
+}
+let toastT;
+function toast(msg, act){
+  toastEl.innerHTML = '';
+  const t = document.createElement('span');
+  t.textContent = msg;
+  toastEl.appendChild(t);
+  if(act){
+    const b = document.createElement('button');
+    b.textContent = act.label;
+    b.onclick = ()=>{ clearTimeout(toastT); toastEl.classList.remove('show'); act.fn(); };
+    toastEl.appendChild(b);
+  }
+  toastEl.classList.add('show');
+  clearTimeout(toastT);
+  toastT = setTimeout(()=>toastEl.classList.remove('show'), act ? 3600 : 1900);
+}
+
+/* ── 渲染:看图 ── */
+function render(){
+  updateEmpty();
+  const list = S.playing ? S.queue : pool();
+  const pos = S.playing ? S.qp : S.idx;
+  const p = list[Math.min(pos, list.length-1)];
+  if(!p){
+    if(S.playing){ S.playing=false; stopTick(); hud.classList.remove('open'); $('screen').classList.remove('zen'); clearTimeout(zenT); }
+    return;
+  }
+  img.classList.add('swap');
+  setTimeout(()=>{ img.src = p.src; img.classList.remove('swap'); }, 120);
+  $('scopeName').textContent = scopeName();
+  $('counter').textContent = String(pos+1).padStart(2,'0') + ' / ' + String(list.length).padStart(2,'0');
+  $('scopeLabel').classList.toggle('playing', S.playing);
+  const favB = $('btnFav');
+  $('pcaption').textContent = `${p.date} · ${p.file}`;
+  favB.classList.toggle('on', S.favs.has(p.id));
+  $('slStat').textContent = S.playing
+    ? `第 ${S.round} 轮 · 已显影 ${pos+1} / ${list.length}`
+    : `已显影 0 / ${pool().length}`;
+  document.querySelectorAll('#scopeChips .chip').forEach(c=>c.classList.toggle('on', c.dataset.scope===scopeKey()));
+  if(S.gridFolder) renderGrid();
+}
+function scopeKey(){ return S.scope==='fav'?'fav':S.scope==='all'?'all':'folder'; }
+function updateEmpty(){
+  const none = !S.playing && !pool().length && !S.gridFolder;
+  $('emptyState').classList.toggle('show', none);
+  if(!none) return;
+  if(S.scope==='fav'){
+    $('emptyTitle').textContent = '收藏还是空的';
+    $('emptyText').innerHTML = '看图时点 <b style="color:var(--safelight)">♥</b> 收藏喜欢的照片<br>收藏夹本身就是一个随机范围';
+    $('emptyBtn').textContent = '回全库看看';
+  } else {
+    $('emptyTitle').textContent = '这个范围没有照片';
+    $('emptyText').textContent = '换个文件夹,或在抽屉里恢复隐藏的文件夹';
+    $('emptyBtn').textContent = '打开抽屉';
+  }
+}
+
+function go(dir){
+  if(S.playing){ // 幻灯片中手动跳 = 从队列取下一张(滑动不唤醒控制)
+    advanceQueue(dir);
+  } else {
+    const list = pool();
+    S.idx = (S.idx + dir + list.length) % list.length;
+  }
+  render();
+}
+
+/* ── 洗牌队列 ── */
+function buildQueue(keepCurrent){
+  const list = pool();
+  if(!list.length) return;
+  let q = shuffled(list);
+  const cur = currentPhoto();
+  if(keepCurrent && cur){
+    const at = q.indexOf(cur); if(at>0){ [q[0],q[at]]=[q[at],q[0]]; }
+  }
+  S.queue = q; S.qp = 0;
+}
+function currentPhoto(){
+  const list = S.playing ? S.queue : pool();
+  const pos = S.playing ? S.qp : S.idx;
+  return list[Math.min(pos, list.length-1)];
+}
+function advanceQueue(dir=1){
+  if(dir>0){
+    S.qp++;
+    if(S.qp >= S.queue.length){
+      S.round++;
+      buildQueue(false);
+    }
+  } else {
+    S.qp = Math.max(0, S.qp-1);
+  }
+}
+
+/* ── 幻灯片 ── */
+let playT, zenT, zenToasted = false;
+function goZen(){
+  $('screen').classList.add('zen');
+  if(!zenToasted){ zenToasted = true; toast('轻点屏幕 · 呼出控制'); }
+}
+function enterZen(delay=3000){
+  clearTimeout(zenT);
+  $('screen').classList.remove('zen');
+  if(delay<=0){ if(S.playing) goZen(); return; }
+  zenT = setTimeout(()=>{ if(S.playing) goZen(); }, delay);
+}
+function startPlay(auto=false){
+  const list = pool();
+  if(!list.length){ toast('这个范围没有照片'); return; }
+  S.round = 1;
+  buildQueue(false);   // 不保留当前张:点洗牌立即随机跳一张
+  S.playing = true;
+  hud.classList.add('open');
+  drawer.classList.remove('open'); scrim.classList.remove('open');
+  gridview.classList.remove('open'); infosheet.classList.remove('open');
+  render();
+  tick();
+  if(auto){ enterZen(0); }              // 自动开播:直接沉浸,不弹面板
+  else { enterZen(); toast('◍ 随机幻灯片 · ' + scopeName() + ' ' + S.queue.length + ' 张'); }
+}
+function tick(){
+  stopTick();
+  progress.style.transition='none'; progress.style.width='0%';
+  void progress.offsetWidth;
+  progress.style.transition=`width ${S.speed}s linear`;
+  progress.style.width='100%';
+  const eb = $('edgebar');
+  eb.style.transition='none'; eb.style.width='0%';
+  void eb.offsetWidth;
+  eb.style.transition=`width ${S.speed}s linear`;
+  eb.style.width='100%';
+  playT = setTimeout(()=>{ advanceQueue(1); render(); tick(); }, S.speed*1000);
+}
+function stopTick(){
+  clearTimeout(playT);
+  progress.style.transition='none'; progress.style.width='0%';
+  const eb = $('edgebar'); eb.style.transition='none'; eb.style.width='0%';
+}
+function pausePlay(){ S.playing=false; stopTick(); hud.classList.remove('open'); $('screen').classList.remove('zen'); clearTimeout(zenT); render(); }
+function stopPlay(){ pausePlay(); }
+
+/* ── 抽屉 ── */
+function openDrawer(){ drawer.classList.add('open'); scrim.classList.add('open'); }
+function closeDrawer(){ drawer.classList.remove('open'); scrim.classList.remove('open'); }
+function renderDrawer(){
+  const box = $('drawerList'); box.innerHTML='';
+  const mk = (html, cls, click) => {
+    const d = document.createElement('div');
+    d.className = 'drow ' + (cls||'');
+    d.innerHTML = html;
+    d.onclick = e => click(e, d);
+    box.appendChild(d);
+  };
+  // 收藏行
+  mk(`<div class="thumb favrow-thumb" style="display:flex;align-items:center;justify-content:center;color:#ff4b2e;background:#1a0e0b;border-radius:8px;font-size:17px">♥</div>
+      <div class="nm">收藏<small>FAVORITES</small></div><span class="ct">${S.favs.size}</span>`,
+    S.scope==='fav'?'on':'', ()=>{ setScope('fav'); closeDrawer(); });
+  // 全库行
+  mk(`<div class="thumb" style="display:flex;align-items:center;justify-content:center;color:#8a8578;font-family:'IBM Plex Mono';font-size:10px;background:#15151a">ALL</div>
+      <div class="nm">全库<small>EVERYTHING</small></div><span class="ct">${PHOTOS.filter(p=>!S.hidden.has(p.folder)).length}</span>`,
+    S.scope==='all'?'on':'', ()=>{ setScope('all'); closeDrawer(); });
+  // 分隔
+  const sep = document.createElement('div');
+  sep.style.cssText='height:1px;background:#26262e;margin:8px 22px';
+  box.appendChild(sep);
+  // 文件夹行
+  FOLDERS.forEach(f=>{
+    const hid = S.hidden.has(f.id);
+    const cover = PHOTOS.find(p=>p.folder===f.id);
+    const n = PHOTOS.filter(p=>p.folder===f.id).length;
+    const row = document.createElement('div');
+    row.className = 'drow' + (hid?' hidden-row':'') + (S.scope==='folder:'+f.id?' on':'');
+    row.innerHTML = `
+      <div class="thumb" style="background-image:url('${cover.src}')"></div>
+      <div class="nm">${f.name}<small>${f.path.toUpperCase()}</small></div>
+      ${hid
+        ? `<button class="eyeb" title="取消隐藏"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M2 12s3.5-6.5 10-6.5 10 6.5 10 6.5-3.5 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="2.8"/><path d="M4 4l16 16" stroke="var(--safelight)"/></svg></button><span class="ct" style="color:#8a8578">${n}</span>`
+        : `<span class="ct">${n}</span><button class="go-grid" title="印样网格"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="4" width="7" height="7" rx="1"/><rect x="13" y="4" width="7" height="7" rx="1"/><rect x="4" y="13" width="7" height="7" rx="1"/><rect x="13" y="13" width="7" height="7" rx="1"/></svg></button>`}
+    `;
+    row.onclick = e => {
+      if(e.target.closest('.go-grid')){ openGrid(f.id); return; }
+      if(e.target.closest('.eyeb')){ S.hidden.delete(f.id); renderDrawer(); toast('已恢复文件夹「'+f.name+'」'); return; }
+      if(hid){ toast('该文件夹已隐藏,点眼睛恢复'); return; }
+      setScope('folder:'+f.id); closeDrawer();
+    };
+    box.appendChild(row);
+  });
+  // 已忽略(单张不再显示)
+  if(S.ignored.size){
+    const row = document.createElement('div');
+    row.className = 'drow';
+    row.innerHTML = `<div class="thumb" style="display:flex;align-items:center;justify-content:center;color:#45454e;background:#15151a;font-size:15px">◌</div>
+      <div class="nm">已忽略<small>点缩略图恢复显示</small></div><span class="ct">${S.ignored.size}</span>`;
+    const wrap = document.createElement('div');
+    wrap.style.cssText = 'display:none;flex-wrap:wrap;gap:6px;padding:4px 22px 10px';
+    [...S.ignored].map(id=>PHOTOS.find(p=>p.id===id)).filter(Boolean).forEach(p=>{
+      const t = document.createElement('div');
+      t.style.cssText = `width:52px;height:52px;border-radius:8px;background-image:url('${p.src}');background-size:cover;cursor:pointer;opacity:.55`;
+      t.title = '恢复显示';
+      t.onclick = ()=>{ S.ignored.delete(p.id); render(); renderDrawer(); toast('已恢复显示'); };
+      wrap.appendChild(t);
+    });
+    row.onclick = ()=>{ wrap.style.display = wrap.style.display==='none' ? 'flex' : 'none'; };
+    box.appendChild(row);
+    box.appendChild(wrap);
+  }
+}
+function setScope(sc){
+  S.scope = sc;
+  S.idx = 0;
+  if(S.playing){
+    if(!pool().length){ stopPlay(); }
+    else { S.round = 1; buildQueue(true); tick(); }
+  }
+  render(); renderDrawer();
+}
+
+/* ── 网格(印样) ── */
+function openGrid(fid){
+  S.gridFolder = fid;
+  const f = folderById(fid);
+  $('gridTitle').textContent = f.name;
+  const list = PHOTOS.filter(p=>p.folder===fid);
+  $('gridSub').textContent = `CONTACT SHEET · ${list.length} FRAMES · 批量管理入口`;
+  renderGrid();
+  drawer.classList.remove('open'); scrim.classList.remove('open');
+  gridview.classList.add('open');
+}
+function renderGrid(){
+  if(!S.gridFolder) return;
+  const fid = S.gridFolder;
+  const list = PHOTOS.filter(p=>p.folder===fid);
+  const g = $('gscroll'); g.innerHTML='';
+  const cur = currentPhoto();
+  list.forEach(p=>{
+    const c = document.createElement('div');
+    c.className = 'gcell' + (S.favs.has(p.id)?' faved':'') + (cur===p?' cur':'');
+    c.innerHTML = `<img src="${p.src}" loading="lazy"><span class="fv">♥</span>`;
+    c.onclick = ()=>{
+      gridview.classList.remove('open');
+      setScope('folder:'+fid);
+      S.idx = pool().indexOf(p); if(S.idx<0) S.idx=0;
+      render();
+    };
+    g.appendChild(c);
+  });
+}
+
+/* ── 信息面板 ── */
+function renderInfo(){
+  const p = currentPhoto(); if(!p) return;
+  $('infoTitle').textContent = p.file;
+  $('infoRows').innerHTML = `
+    <div class="xr"><i>拍摄时间</i><em>${p.date}</em></div>
+    <div class="xr"><i>分辨率</i><em>${p.w}×${p.h}</em></div>
+    <div class="xr"><i>ISO</i><em>${p.iso}</em></div>
+    <div class="xr"><i>光圈</i><em>f/${p.fn}</em></div>
+    <div class="xr"><i>文件夹</i><em>${folderById(p.folder).name}</em></div>
+    <div class="xr"><i>收藏</i><em>${S.favs.has(p.id)?'♥ 是':'否'}</em></div>
+    <div class="xr path"><i>路径</i><em>/storage/emulated/0${folderById(p.folder).path}/${p.file}</em></div>`;
+  infosheet.classList.add('open');
+}
+
+/* ── 事件 ── */
+$('btnDrawer').onclick = ()=> drawer.classList.contains('open') ? closeDrawer() : openDrawer();
+scrim.onclick = closeDrawer;
+$('btnShuffle').onclick = ()=> S.playing ? stopPlay() : startPlay();
+$('hudClose').onclick = ()=> stopPlay();
+$('btnPlay').onclick = ()=>{
+  if(playT){ stopTick(); $('playIcon').innerHTML = '<path d="M8 5.5v13l11-6.5z"/>'; }
+  else { tick(); $('playIcon').innerHTML = '<rect x="6.5" y="5" width="4" height="14" rx="1"/><rect x="13.5" y="5" width="4" height="14" rx="1"/>'; }
+};
+$('btnFav').onclick = ()=>{
+  const p = currentPhoto(); if(!p) return;
+  if(S.favs.has(p.id)){ S.favs.delete(p.id); toast('已取消收藏'); }
+  else { S.favs.add(p.id); const b=$('btnFav'); b.classList.remove('pop'); void b.offsetWidth; b.classList.add('pop'); toast('♥ 已加入收藏'); }
+  render(); renderDrawer();
+};
+$('btnInfo').onclick = ()=> infosheet.classList.contains('open') ? infosheet.classList.remove('open') : renderInfo();
+$('infoClose').onclick = ()=> infosheet.classList.remove('open');
+/* 点面板外空白处关闭底部面板;播放中轻点 = 呼出/隐藏控制 */
+stage.addEventListener('click', ()=>{
+  if(infosheet.classList.contains('open')) infosheet.classList.remove('open');
+  else if($('setsheet').classList.contains('open')) $('setsheet').classList.remove('open');
+  else if(S.playing){
+    if(Date.now() - swipedAt < 350) return;   // 刚滑动切图,不算轻点
+    enterZen($('screen').classList.contains('zen') ? 3000 : 0);
+  }
+});
+hud.addEventListener('pointerdown', ()=>{ if(S.playing) enterZen(); });
+$('btnDel').onclick = ()=>{
+  const p = currentPhoto(); if(!p) return;
+  const i = PHOTOS.indexOf(p);
+  PHOTOS.splice(i,1);
+  if(S.playing){ S.round = 1; buildQueue(false); tick(); }
+  else { S.idx = Math.min(S.idx, Math.max(0, pool().length-1)); }
+  render(); renderDrawer();
+  toast('🗑 已移入回收站 · 可恢复', {label:'撤销', fn:()=>{
+    PHOTOS.splice(Math.min(i, PHOTOS.length), 0, p);
+    if(S.playing){ buildQueue(true); tick(); }
+    render(); renderDrawer();
+    toast('已撤销,照片已放回原位');
+  }});
+};
+$('gridBack').onclick = ()=>{ gridview.classList.remove('open'); S.gridFolder=null; };
+document.querySelectorAll('#scopeChips .chip').forEach(c=>c.onclick = ()=>{
+  const k = c.dataset.scope;
+  setScope(k==='folder' ? (S.scope.startsWith('folder:') ? S.scope : 'folder:camera') : k);
+});
+$('speedSlider').addEventListener('input', e=>{
+  S.speed = +e.target.value;
+  $('speedVal').textContent = S.speed + 's';
+});
+$('speedSlider').addEventListener('change', ()=>{ if(S.playing) tick(); });
+document.querySelectorAll('.navzone').forEach(n=>n.onclick = ()=>go(+n.dataset.nav));
+$('emptyBtn').onclick = ()=> S.scope==='fav' ? setScope('all') : openDrawer();
+
+/* ── 设置 ── */
+const SETTINGS = { startup:'last', loop:'reshuffle', transition:'fade', caption:'off', theme:'system', autoplay:'off', edgebar:'on' };
+const SET_NAMES = { startup:'启动首图', loop:'播完行为', transition:'切图过渡', caption:'信息角标', theme:'主题', autoplay:'启动自动放映', edgebar:'进度细线' };
+const STARTUP_NAMES = { last:'接着上次看', random:'随机一张', fixed:'固定文件夹', newest:'最新一张' };
+function saveSettings(){ try{ localStorage.setItem('rg-settings', JSON.stringify(SETTINGS)); }catch(e){} }
+function loadSettings(){ try{ const s = JSON.parse(localStorage.getItem('rg-settings')); if(s) Object.assign(SETTINGS, s); }catch(e){} }
+function syncSettingsUI(){
+  document.querySelectorAll('.setsheet .chips').forEach(g=>{
+    const k = g.dataset.group;
+    g.querySelectorAll('[data-v]').forEach(c=>c.classList.toggle('on', c.dataset.v===String(SETTINGS[k])));
+  });
+  document.querySelectorAll('.setsheet .sw').forEach(s=>s.classList.toggle('on', SETTINGS[s.dataset.group]==='on'));
+  $('startupVal').textContent = STARTUP_NAMES[SETTINGS.startup] || SETTINGS.startup;
+  document.querySelectorAll('#startupDlg .dop').forEach(o=>o.classList.toggle('on', o.dataset.v===SETTINGS.startup));
+}
+function applySettings(){
+  $('screen').classList.toggle('show-cap', SETTINGS.caption==='on');
+  ['fade','slide','none'].forEach(m=>$('screen').classList.toggle('tr-'+m, SETTINGS.transition===m));
+  $('edgebar').style.display = SETTINGS.edgebar==='on' ? '' : 'none';
+}
+$('btnSettings').onclick = ()=>{ closeDrawer(); $('setsheet').classList.add('open'); };
+$('setClose').onclick = ()=> $('setsheet').classList.remove('open');
+document.querySelectorAll('.setsheet .chips').forEach(g => g.addEventListener('click', e=>{
+  const c = e.target.closest('[data-v]'); if(!c) return;
+  g.querySelectorAll('[data-v]').forEach(x=>x.classList.remove('on'));
+  c.classList.add('on');
+  const k = g.dataset.group;
+  SETTINGS[k] = c.dataset.v;
+  applySettings();
+  saveSettings();
+  toast('⚙ ' + SET_NAMES[k] + ' 已保存');
+}));
+document.querySelectorAll('.setsheet .sw').forEach(sw => sw.addEventListener('click', ()=>{
+  const k = sw.dataset.group;
+  SETTINGS[k] = SETTINGS[k]==='on' ? 'off' : 'on';
+  sw.classList.toggle('on', SETTINGS[k]==='on');
+  applySettings();
+  saveSettings();
+  if(k==='autoplay'){ SETTINGS.autoplay==='on' ? startPlay() : pausePlay(); }
+  toast('⚙ ' + SET_NAMES[k] + ' 已保存');
+}));
+/* 首启权限屏:演示一次;设置「关于」行可重看 */
+function showPerm(){
+  $('permAsk').style.display=''; $('permDenied').style.display='none';
+  $('permscreen').classList.add('open');
+}
+function permDone(){
+  $('permscreen').classList.remove('open');
+  try{ localStorage.setItem('rg-perm-once','1'); }catch(e){}
+  const list = pool();               // 首启回退:随机一张
+  if(list.length){ S.idx = Math.floor(Math.random()*list.length); render(); }
+  toast('已授权 · 首次进入,随机一张旧照片');
+}
+$('permGrant').onclick = permDone;
+$('permDeny').onclick = ()=>{ $('permAsk').style.display='none'; $('permDenied').style.display=''; };
+$('permRetry').onclick = permDone;
+$('aboutRow').onclick = ()=>{ $('setsheet').classList.remove('open'); try{ localStorage.removeItem('rg-perm-once'); }catch(e){} showPerm(); };
+try{ if(!localStorage.getItem('rg-perm-once')) setTimeout(showPerm, 600); }catch(e){}
+
+function openStartupDlg(){
+  document.querySelectorAll('#startupDlg .dop').forEach(o=>o.classList.toggle('on', o.dataset.v===SETTINGS.startup));
+  $('dlgScrim').classList.add('open'); $('startupDlg').classList.add('open');
+}
+function closeStartupDlg(){ $('dlgScrim').classList.remove('open'); $('startupDlg').classList.remove('open'); }
+$('startupRow').onclick = openStartupDlg;
+$('dlgScrim').onclick = closeStartupDlg;
+document.querySelectorAll('#startupDlg .dop').forEach(o=>o.onclick = ()=>{
+  SETTINGS.startup = o.dataset.v;
+  $('startupVal').textContent = STARTUP_NAMES[o.dataset.v];
+  closeStartupDlg(); saveSettings();
+  toast('⚙ 启动首图 已保存');
+});
+
+/* 长按忽略(单张不再显示) */
+function ignoreCurrent(){
+  const p = currentPhoto(); if(!p) return;
+  S.ignored.add(p.id);
+  if(S.playing){ S.round = 1; buildQueue(false); tick(); }
+  else { S.idx = Math.min(S.idx, Math.max(0, pool().length-1)); }
+  render(); renderDrawer();
+  toast('◌ 已不再显示这张 · 文件不动', {label:'撤销', fn:()=>{
+    S.ignored.delete(p.id);
+    render(); renderDrawer();
+    toast('已恢复显示');
+  }});
+}
+
+/* 滑动切图 + 长按检测 */
+let sx=0, dx=0, dragging=false, swipedAt=0, holdT=null, holdFired=false;
+stage.addEventListener('pointerdown', e=>{
+  dragging=true; sx=e.clientX; dx=0; holdFired=false;
+  clearTimeout(holdT);
+  if(!e.target.closest('.navzone')) holdT = setTimeout(()=>{ holdFired=true; ignoreCurrent(); }, 550);
+});
+window.addEventListener('pointermove', e=>{
+  if(!dragging) return;
+  dx=e.clientX-sx;
+  if(Math.abs(dx)>6) clearTimeout(holdT);
+  img.style.transform=`translateX(${dx*0.35}px)`;
+});
+window.addEventListener('pointerup', ()=>{
+  clearTimeout(holdT);
+  if(!dragging) return; dragging=false;
+  img.style.transform='';
+  if(holdFired){ swipedAt = Date.now(); dx=0; return; }
+  if(Math.abs(dx)>42){ swipedAt = Date.now(); go(dx<0?1:-1); }
+  dx=0;
+});
+
+/* 键盘 */
+window.addEventListener('keydown', e=>{
+  if(e.key==='ArrowRight'){ go(1); }
+  else if(e.key==='ArrowLeft'){ go(-1); }
+  else if(e.code==='Space'){ e.preventDefault(); S.playing?stopPlay():startPlay(); }
+  else if(e.key==='d'||e.key==='D'){ drawer.classList.contains('open')?closeDrawer():openDrawer(); }
+  else if(e.key==='f'||e.key==='F'){ $('btnFav').click(); }
+  else if(e.key==='i'||e.key==='I'){ $('btnInfo').click(); }
+  else if(e.key==='Escape'){
+    if($('permscreen').classList.contains('open')) permDone();
+    else if($('startupDlg').classList.contains('open')) closeStartupDlg();
+    else if($('setsheet').classList.contains('open')) $('setsheet').classList.remove('open');
+    else if(infosheet.classList.contains('open')) infosheet.classList.remove('open');
+    else if(gridview.classList.contains('open')){ gridview.classList.remove('open'); S.gridFolder=null; }
+    else if(drawer.classList.contains('open')) closeDrawer();
+    else if(S.playing) stopPlay();
+  }
+});
+
+/* 初始 */
+loadSettings();
+renderDrawer();
+syncSettingsUI();
+applySettings();
+render();
+if(SETTINGS.autoplay==='on') startPlay(true);
+</script>
+</body>
+</html>
