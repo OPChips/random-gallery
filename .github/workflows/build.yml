@@ -3,6 +3,11 @@ name: Build APK
 permissions:
   contents: write   # 允许发布 Release(默认令牌只读)
 
+# 同分支新推送会取消仍在排队的旧构建,避免堆积
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: true
+
 on:
   push:
     branches: [main]
