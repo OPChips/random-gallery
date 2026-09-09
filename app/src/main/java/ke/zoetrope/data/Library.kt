@@ -45,14 +45,14 @@ class Library(private val context: Context, private val prefs: Prefs) {
     var round by mutableStateOf(1); private set
     var idx by mutableStateOf(0); private set   // 非播放时在 pool() 中的位置
 
-    // ── 设置写入 ──
-    fun setStartup(v: String) { startup = v; prefs.putString(SKeys.STARTUP, v) }
-    fun setAutoplay(v: Boolean) { autoplay = v; prefs.putBool(SKeys.AUTOPLAY, v) }
-    fun setLoop(v: String) { loop = v; prefs.putString(SKeys.LOOP, v) }
-    fun setTransition(v: String) { transition = v; prefs.putString(SKeys.TRANSITION, v) }
-    fun setCaption(v: Boolean) { caption = v; prefs.putBool(SKeys.CAPTION, v) }
-    fun setEdgebar(v: Boolean) { edgebar = v; prefs.putBool(SKeys.EDGEBAR, v) }
-    fun setTheme(v: String) { theme = v; prefs.putString(SKeys.THEME, v) }
+    // ── 设置写入(@JvmName 避免与 private set 生成的字节码 setter 撞名)──
+    @JvmName("applyStartup") fun setStartup(v: String) { startup = v; prefs.putString(SKeys.STARTUP, v) }
+    @JvmName("applyAutoplay") fun setAutoplay(v: Boolean) { autoplay = v; prefs.putBool(SKeys.AUTOPLAY, v) }
+    @JvmName("applyLoop") fun setLoop(v: String) { loop = v; prefs.putString(SKeys.LOOP, v) }
+    @JvmName("applyTransition") fun setTransition(v: String) { transition = v; prefs.putString(SKeys.TRANSITION, v) }
+    @JvmName("applyCaption") fun setCaption(v: Boolean) { caption = v; prefs.putBool(SKeys.CAPTION, v) }
+    @JvmName("applyEdgebar") fun setEdgebar(v: Boolean) { edgebar = v; prefs.putBool(SKeys.EDGEBAR, v) }
+    @JvmName("applyTheme") fun setTheme(v: String) { theme = v; prefs.putString(SKeys.THEME, v) }
     fun saveSpeed() { prefs.putFloat(SKeys.SPEED, speed) }
     fun setFixedBucket(b: String) { prefs.putString(SKeys.FIXED_BUCKET, b) }
     fun fixedBucket() = prefs.getString(SKeys.FIXED_BUCKET, "")
@@ -153,6 +153,7 @@ class Library(private val context: Context, private val prefs: Prefs) {
 
     fun current(): Photo? = if (playing) queue.getOrNull(qp) else pool().getOrNull(idx)
 
+    @JvmName("applyIdx")
     fun setIdx(i: Int) { idx = i.coerceIn(0, (pool().size - 1).coerceAtLeast(0)) }
     fun jumpTo(photo: Photo) {
         val at = pool().indexOfFirst { it.id == photo.id }
@@ -174,6 +175,7 @@ class Library(private val context: Context, private val prefs: Prefs) {
         else -> photos.firstOrNull { it.bucketId == scope.removePrefix("bucket:") }?.bucketName ?: "文件夹"
     }
 
+    @JvmName("applyScope")
     fun setScope(s: String) {
         scope = s
         prefs.putString(SKeys.SCOPE, s)
