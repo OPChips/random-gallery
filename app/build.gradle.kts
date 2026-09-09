@@ -16,9 +16,20 @@ android {
         versionName = "0.1.0"
     }
 
+    signingConfigs {
+        create("release") {
+            // 个人应用务实方案:PKCS12 密钥随私有仓库分发(openssl 生成)
+            storeFile = file("zoetrope.keystore")
+            storeType = "PKCS12"
+            storePassword = "zoetrope-2026"
+            keyAlias = "zoetrope"
+            keyPassword = "zoetrope-2026"
+        }
+    }
     buildTypes {
         release {
             isMinifyEnabled = false
+            signingConfig = signingConfigs.getByName("release")
         }
     }
     compileOptions {
