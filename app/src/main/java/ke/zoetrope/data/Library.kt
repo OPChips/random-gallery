@@ -207,7 +207,7 @@ class Library(private val context: Context, private val prefs: Prefs) {
         pendingAuto = auto
         paused = false
         playing = true
-        buildQueue(false)   // 不保当前张:点洗牌立即随机跳一张
+        buildQueue(true)   // 幻灯片标准做法:停在当前张,走完一个间隔再随机切
         return true
     }
     /** 停止放映:把放映位置同步回手动指针,画面停在最后看到的那张 */
