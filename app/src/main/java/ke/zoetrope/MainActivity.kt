@@ -188,6 +188,10 @@ fun ZoetropeApp() {
     var overlay by remember { mutableStateOf(Overlay.None) }
     var gridBucket by remember { mutableStateOf("") }
 
+    // ── 面板交互暂停:放映中打开面板先暂停,关闭面板自动恢复(手动暂停不代恢复)──
+    fun openOverlay(o: Overlay) { lib.pauseForInteraction(); overlay = o }
+    fun closeOverlay() { overlay = Overlay.None; lib.autoResume() }
+
     // ── 回收站 ──
     var pendingTrash by remember { mutableStateOf<Set<Long>>(emptySet()) }
     val trashLauncher = rememberLauncherForActivityResult(
@@ -199,6 +203,7 @@ fun ZoetropeApp() {
             lib.removeIds(ids)
             toast("🗑 已移入回收站 · 可在系统相册恢复", null, null)
         }
+        lib.autoResume()   // 回收站弹窗关闭,恢复交互暂停的放映
     }
     fun trash(ids: Set<Long>) {
         if (ids.isEmpty()) return
@@ -216,7 +221,7 @@ fun ZoetropeApp() {
 
     // ── 返回键:遮罩 → 幻灯片 ──
     BackHandler(enabled = lib.playing && overlay == Overlay.None) { lib.stopPlay() }
-    BackHandler(enabled = overlay != Overlay.None) { overlay = Overlay.None }
+    BackHandler(enabled = overlay != Overlay.None) { closeOverlay() }
 
     // ── 根画面 ──
     Box(Modifier.fillMaxSize().background(FilmBlack)) {
@@ -245,10 +250,10 @@ fun ZoetropeApp() {
             ViewerScreen(
                 lib = lib,
                 toast = toastFn,
-                onDrawer = { overlay = Overlay.Drawer },
-                onGrid = { b -> gridBucket = b; overlay = Overlay.Grid },
-                onSettings = { overlay = Overlay.Settings },
-                onExif = { overlay = Overlay.Exif },
+                onDrawer = { openOverlay(Overlay.Drawer) },
+                onGrid = { b -> gridBucket = b; openOverlay(Overlay.Grid) },
+                onSettings = { openOverlay(Overlay.Settings) },
+                onExif = { openOverlay(Overlay.Exif) },
                 onTrash = { lib.current()?.let { trash(setOf(it.id)) } },
             )
 
@@ -264,13 +269,13 @@ fun ZoetropeApp() {
                     DrawerPanel(
                         lib = lib,
                         toast = toastFn,
-                        onClose = { overlay = Overlay.None },
-                        onOpenGrid = { b -> gridBucket = b; overlay = Overlay.Grid },
-                        onOpenSettings = { overlay = Overlay.Settings },
+                        onClose = { closeOverlay() },
+                        onOpenGrid = { b -> gridBucket = b; openOverlay(Overlay.Grid) },
+                        onOpenSettings = { openOverlay(Overlay.Settings) },
                     )
                     Box(
                         Modifier.weight(1f).fillMaxSize().background(Color(0x66000000))
-                            .clickableNoRipple { overlay = Overlay.None }
+                            .clickableNoRipple { closeOverlay() }
                     )
                 }
             }
@@ -285,10 +290,10 @@ fun ZoetropeApp() {
                         onOpenPhoto = { p ->
                             lib.setScope("bucket:$gridBucket")
                             lib.jumpTo(p)
-                            overlay = Overlay.None
+                            closeOverlay()
                         },
                         onTrash = { ids -> trash(ids) },
-                        onClose = { overlay = Overlay.None },
+                        onClose = { closeOverlay() },
                     )
                 }
             }
@@ -297,14 +302,14 @@ fun ZoetropeApp() {
             if (overlay == Overlay.Settings) {
                 Box(
                     Modifier.fillMaxSize().background(Color(0x66000000))
-                        .clickableNoRipple { overlay = Overlay.None }
+                        .clickableNoRipple { closeOverlay() }
                 )
                 Box(Modifier.fillMaxSize(), contentAlignment = Alignment.BottomCenter) {
                     SettingsSheet(
                         lib = lib,
                         toast = toastFn,
-                        onReplayPerm = { overlay = Overlay.Perm },
-                        onClose = { overlay = Overlay.None }
+                        onReplayPerm = { openOverlay(Overlay.Perm) },
+                        onClose = { closeOverlay() }
                     )
                 }
             }
@@ -314,7 +319,7 @@ fun ZoetropeApp() {
                 val cur = lib.current()
                 Box(
                     Modifier.fillMaxSize().background(Color(0x66000000))
-                        .clickableNoRipple { overlay = Overlay.None }
+                        .clickableNoRipple { closeOverlay() }
                 )
                 Box(Modifier.fillMaxSize(), contentAlignment = Alignment.BottomCenter) {
                     if (cur != null) {
@@ -322,7 +327,7 @@ fun ZoetropeApp() {
                             photo = cur,
                             folderName = cur.bucketName,
                             isFav = cur.id in lib.favs,
-                            onClose = { overlay = Overlay.None }
+                            onClose = { closeOverlay() }
                         )
                     }
                 }
@@ -333,8 +338,8 @@ fun ZoetropeApp() {
                 Box(Modifier.fillMaxSize().background(FilmBlack)) {
                     PermScreen(
                         denied = false,
-                        onGrant = { overlay = Overlay.None; requestPerm() },
-                        onSkip = { overlay = Overlay.None }
+                        onGrant = { closeOverlay(); requestPerm() },
+                        onSkip = { closeOverlay() }
                     )
                 }
             }

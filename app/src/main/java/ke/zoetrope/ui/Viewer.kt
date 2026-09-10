@@ -123,6 +123,12 @@ fun ViewerScreen(
 
     fun hudTouch() { zen = false; zenTick++ }
 
+    // ── 交互暂停:放映中任何交互先暂停(lib.pauseForInteraction),合适时机 lib.autoResume 恢复 ──
+    // 缩放查看时暂停,缩回 1x 自动恢复
+    LaunchedEffect(scale) {
+        if (scale > 1f) lib.pauseForInteraction() else if (scale == 1f) lib.autoResume()
+    }
+
     fun page(dir: Int) {
         scale = 1f; offset = OffsetZero; dragX = 0f
         if (lib.playing) lib.advance(dir) else lib.pageManual(dir)
@@ -134,7 +140,7 @@ fun ViewerScreen(
             swiped -> {}
             pos.x < screenW * 0.2f -> page(-1)
             pos.x > screenW * 0.8f -> page(1)
-            lib.playing -> { zen = !zen; if (!zen) zenTick++ }
+            lib.playing -> { zen = false; zenTick++; lib.togglePause() }   // 点中间 = 暂停/恢复 + 呼出 HUD
         }
     }
 
@@ -155,10 +161,12 @@ fun ViewerScreen(
                         }
                     },
                     onLongPress = {
+                        lib.pauseForInteraction()   // 忽略期间冻结计时
                         current?.let {
                             lib.setIgnored(it.id, true)
                             if (lib.playing) lib.buildQueue(false)
                             else lib.setIdx(minOf(lib.idx, (lib.pool().size - 1).coerceAtLeast(0)))
+                            lib.autoResume()
                             toast("◌ 已不再显示这张 · 文件不动", "撤销") {
                                 lib.setIgnored(it.id, false)
                                 toast("已恢复显示", null, null)
@@ -293,7 +301,7 @@ fun ViewerScreen(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                RoundBtn(46.dp, "☰") { onDrawer() }
+                RoundBtn(46.dp, "☰") { lib.pauseForInteraction(); onDrawer() }
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
                     HeartBtn(faved = current != null && current!!.id in lib.favs) {
                         current?.let {
@@ -301,8 +309,8 @@ fun ViewerScreen(
                             toast(if (it.id in lib.favs) "♥ 已加入收藏" else "已取消收藏", null, null)
                         }
                     }
-                    RoundBtn(46.dp, "ⓘ") { onExif() }
-                    RoundBtn(46.dp, "🗑") { onTrash() }
+                    RoundBtn(46.dp, "ⓘ") { lib.pauseForInteraction(); onExif() }
+                    RoundBtn(46.dp, "🗑") { lib.pauseForInteraction(); onTrash() }
                 }
                 // 洗牌大圆钮:恒红底
                 Box(
@@ -334,7 +342,7 @@ fun ViewerScreen(
                 lib = lib, prog = prog.value,
                 onScope = { lib.setScope(it) },
                 onTouch = { hudTouch() },
-                onClose = { zen = true },   // ✕ 只收起面板,放映继续;停止用 ⤨
+                onClose = { if (!lib.paused) zen = true },   // ✕ 收起面板继续放映;暂停中收起会找不到 ▶,忽略
                 onSpeedCommit = { },
                 toast = toast,
                 modifier = Modifier.align(Alignment.BottomCenter).padding(start = 14.dp, end = 14.dp, bottom = 96.dp)

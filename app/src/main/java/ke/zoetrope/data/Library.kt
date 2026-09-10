@@ -39,6 +39,7 @@ class Library(private val context: Context, private val prefs: Prefs) {
     // ── 播放状态 ──
     var playing by mutableStateOf(false); private set
     var paused by mutableStateOf(false); private set
+    var autoPaused by mutableStateOf(false); private set   // true = 放映中因交互自动暂停(非用户手动)
     var pendingAuto by mutableStateOf(false)
     var queue by mutableStateOf<List<Photo>>(emptyList()); private set
     var qp by mutableStateOf(0); private set
@@ -217,10 +218,20 @@ class Library(private val context: Context, private val prefs: Prefs) {
                 if (at >= 0) idx = at
             }
         }
-        playing = false; paused = false
+        playing = false; paused = false; autoPaused = false
     }
 
-    fun togglePause() { if (playing) paused = !paused }
+    fun togglePause() { if (playing) { paused = !paused; autoPaused = false } }
+
+    /** 放映中因交互自动暂停(缩放/长按/开面板);与手动暂停区分 */
+    fun pauseForInteraction() {
+        if (playing && !paused) { paused = true; autoPaused = true }
+    }
+    /** 交互结束自动恢复;手动按 ❚❚ 暂停的不代恢复 */
+    fun autoResume() {
+        if (autoPaused && playing && paused) paused = false
+        autoPaused = false
+    }
 
     /** dir>0 下一张;一轮走完按「播完一轮」设置处理 */
     fun advance(dir: Int) {
