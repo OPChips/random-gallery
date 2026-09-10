@@ -41,7 +41,9 @@ fun DrawerPanel(
     Column(
         Modifier.fillMaxHeight().fillMaxWidth(0.79f)
             .background(PanelBlack)
-            .padding(top = 58.dp, bottom = 12.dp)
+            .padding(top = 58.dp)
+            .windowInsetsPadding(WindowInsets.navigationBars)
+            .padding(bottom = 12.dp)
     ) {
         Column(
             Modifier.weight(1f).fillMaxWidth()

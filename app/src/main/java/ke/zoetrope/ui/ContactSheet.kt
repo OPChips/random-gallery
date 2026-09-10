@@ -44,9 +44,10 @@ fun ContactSheet(
     var sel by remember { mutableStateOf<Set<Long>>(emptySet()) }
 
     Column(Modifier.fillMaxSize().background(FilmBlack)) {
-        // 头栏
+        // 头栏(垫状态栏安全区)
         Row(
             Modifier.fillMaxWidth().background(PanelBlack)
+                .windowInsetsPadding(WindowInsets.statusBars)
                 .padding(horizontal = 14.dp, vertical = 10.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -86,7 +87,10 @@ fun ContactSheet(
         LazyVerticalGrid(
             columns = GridCells.Fixed(3),
             modifier = Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(4.dp),
+            contentPadding = PaddingValues(
+                start = 4.dp, top = 4.dp, end = 4.dp,
+                bottom = 4.dp + WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
+            ),
             horizontalArrangement = Arrangement.spacedBy(4.dp),
             verticalArrangement = Arrangement.spacedBy(4.dp)
         ) {

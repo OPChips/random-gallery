@@ -74,6 +74,9 @@ fun ViewerScreen(
     val current by remember { derivedStateOf { lib.current() } }
     val scope = rememberCoroutineScope()
     val density = LocalDensity.current
+    // 系统栏安全区(targetSdk 35 强制全面屏,交互元素要垫到手势条/刘海之外)
+    val statusPad = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
+    val navPad = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
 
     // ── 布局/手势状态 ──
     var screenW by remember { mutableStateOf(1f) }
@@ -265,6 +268,7 @@ fun ViewerScreen(
             Row(
                 Modifier.fillMaxWidth().align(Alignment.TopCenter)
                     .background(Color.Black.copy(alpha = 0.62f))
+                    .windowInsetsPadding(WindowInsets.statusBars)
                     .padding(horizontal = 18.dp, vertical = 10.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
@@ -297,7 +301,7 @@ fun ViewerScreen(
                 color = Paper.copy(alpha = 0.75f),
                 fontSize = 10.sp, fontFamily = FontFamily.Monospace,
                 modifier = Modifier.align(Alignment.BottomStart)
-                    .padding(start = 18.dp, bottom = 104.dp)
+                    .padding(start = 18.dp, bottom = 104.dp + navPad)
             )
         }
 
@@ -306,6 +310,7 @@ fun ViewerScreen(
             Row(
                 Modifier.fillMaxWidth().align(Alignment.BottomCenter)
                     .background(Color.Black.copy(alpha = 0.62f))
+                    .windowInsetsPadding(WindowInsets.navigationBars)
                     .padding(horizontal = 10.dp, vertical = 8.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
@@ -337,10 +342,11 @@ fun ViewerScreen(
             }
         }
 
-        // ── 进度细线 ──
+        // ── 进度细线(垫在导航条安全区上方)──
         if (lib.playing && lib.edgebar) {
             Box(
                 Modifier.align(Alignment.BottomStart).fillMaxWidth(prog.value)
+                    .padding(bottom = navPad)
                     .height(2.dp).background(Color(0x26FFFFFF))
             )
         }
@@ -354,7 +360,8 @@ fun ViewerScreen(
                 onClose = { if (!lib.paused) zen = true },   // ✕ 收起面板继续放映;暂停中收起会找不到 ▶,忽略
                 onSpeedCommit = { },
                 toast = toast,
-                modifier = Modifier.align(Alignment.BottomCenter).padding(start = 14.dp, end = 14.dp, bottom = 96.dp)
+                modifier = Modifier.align(Alignment.BottomCenter)
+                    .padding(start = 14.dp, end = 14.dp, bottom = 96.dp + navPad)
             )
         }
     }

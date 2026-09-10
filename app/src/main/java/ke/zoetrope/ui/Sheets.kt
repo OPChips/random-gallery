@@ -100,7 +100,9 @@ fun SettingsSheet(
         Modifier.fillMaxWidth().fillMaxHeight(0.76f)
             .background(PanelBlack)
             .verticalScroll(rememberScrollState())
-            .padding(top = 8.dp, bottom = 24.dp)
+            .padding(top = 8.dp)
+            .windowInsetsPadding(WindowInsets.navigationBars)
+            .padding(bottom = 24.dp)
     ) {
         // 抓手条
         Box(
@@ -316,7 +318,9 @@ fun ExifSheet(photo: Photo, folderName: String, isFav: Boolean, onClose: () -> U
     Column(
         Modifier.fillMaxWidth().background(PanelBlack)
             .verticalScroll(rememberScrollState())
-            .padding(top = 10.dp, bottom = 30.dp)
+            .padding(top = 10.dp)
+            .windowInsetsPadding(WindowInsets.navigationBars)
+            .padding(bottom = 30.dp)
     ) {
         // 抓手条
         Box(
