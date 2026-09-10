@@ -1047,7 +1047,7 @@ function startPlay(auto=false){
   const list = pool();
   if(!list.length){ toast('这个范围没有照片'); return; }
   S.round = 1;
-  buildQueue(false);   // 不保留当前张:点洗牌立即随机跳一张
+  buildQueue(true);   // 幻灯片标准做法:停在当前张,走完一个间隔再随机切
   S.playing = true;
   hud.classList.add('open');
   drawer.classList.remove('open'); scrim.classList.remove('open');
