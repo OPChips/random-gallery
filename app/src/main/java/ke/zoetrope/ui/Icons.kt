@@ -1,55 +1,32 @@
 package ke.zoetrope.ui
 
-import androidx.compose.material.icons.materialIcon
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.graphics.vector.addPathNodes
+import androidx.compose.ui.unit.dp
 
-/**
- * material-icons-core 里没有的两个图标,按 Material 官方 SVG 路径自绘:
- * - Shuffle(洗牌钮)——顺带替代字形 ⤨,根治真机 tofu 风险
- * - Pause(HUD 暂停键,PlayArrow 在 core 里有)
- */
-val ShuffleIcon: ImageVector = materialIcon(name = "Shuffle") {
-    path(fill = SolidColor(Color.Black)) {
-        moveTo(10.59f, 9.17f)
-        lineTo(5.41f, 4.0f)
-        lineTo(4.0f, 5.41f)
-        lineTo(9.17f, 10.58f)
-        lineTo(10.59f, 9.17f)
-        close()
-        moveTo(14.5f, 4.0f)
-        lineTo(16.54f, 6.04f)
-        lineTo(4.0f, 18.59f)
-        lineTo(5.41f, 20.0f)
-        lineTo(17.96f, 7.46f)
-        lineTo(20.0f, 9.5f)
-        lineTo(20.0f, 4.0f)
-        lineTo(14.5f, 4.0f)
-        close()
-        moveTo(14.83f, 13.41f)
-        lineTo(13.42f, 14.82f)
-        lineTo(16.55f, 17.95f)
-        lineTo(14.5f, 20.0f)
-        lineTo(20.0f, 20.0f)
-        lineTo(20.0f, 14.5f)
-        lineTo(17.96f, 16.54f)
-        lineTo(14.83f, 13.41f)
-        close()
-    }
-}
+/** 按 Material 官方 SVG 路径数据构建 24dp 视口图标(ui 1.7 移除了 PathBuilder 版 path{},只能走 addPath) */
+private fun materialVector(name: String, pathData: String): ImageVector =
+    ImageVector.Builder(
+        name = name,
+        defaultWidth = 24.dp,
+        defaultHeight = 24.dp,
+        viewportWidth = 24f,
+        viewportHeight = 24f,
+    ).addPath(
+        pathData = addPathNodes(pathData),
+        fill = SolidColor(Color.Black),
+    ).build()
 
-val PauseIcon: ImageVector = materialIcon(name = "Pause") {
-    path(fill = SolidColor(Color.Black)) {
-        moveTo(6.0f, 19.0f)
-        lineTo(10.0f, 19.0f)
-        lineTo(10.0f, 5.0f)
-        lineTo(6.0f, 5.0f)
-        close()
-        moveTo(14.0f, 5.0f)
-        lineTo(14.0f, 19.0f)
-        lineTo(18.0f, 19.0f)
-        lineTo(18.0f, 5.0f)
-        close()
-    }
-}
+/** material-icons-core 里没有的图标,路径与 design/index.html 中 SVG 同源 */
+val ShuffleIcon: ImageVector = materialVector(
+    "Shuffle",
+    "M10.59 9.17 5.41 4 4 5.41l5.17 5.17 1.42-1.41zM14.5 4l2.04 2.04L4 18.59 " +
+        "5.41 20 17.96 7.46 20 9.5V4h-5.5zm.33 9.41-1.41 1.41 3.13 3.13L14.5 20H20v-5.5l-2.04 2.04-3.13-3.13z"
+)
+
+val PauseIcon: ImageVector = materialVector(
+    "Pause",
+    "M6 19h4V5H6v14zm8-14v14h4V5h-4z"
+)
