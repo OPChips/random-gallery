@@ -10,7 +10,7 @@ concurrency:
 
 on:
   push:
-    branches: [main]
+    branches: ['**']   # 任意分支推送都跑编译验证;打 v* 标签才出 APK
     tags: ['v*']
   workflow_dispatch:
 
@@ -29,7 +29,7 @@ jobs:
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
 
-      # main 推送 = 纯编译验证(不打包);v* 标签 = 构建签名 APK
+      # 普通分支推送 = 纯编译验证(不打包);v* 标签 = 构建签名 APK
       - name: Compile check or Build APK
         run: |
           if [[ "$GITHUB_REF" == refs/tags/v* ]]; then
