@@ -326,18 +326,11 @@ fun ViewerScreen(
                     IconBtn(Icons.Filled.Info, "图片信息") { lib.pauseForInteraction(); onExif() }
                     IconBtn(Icons.Filled.Delete, "删除") { lib.pauseForInteraction(); onTrash() }
                 }
-                // 洗牌大圆钮:恒红底,标准 shuffle 矢量图标
-                Box(
-                    Modifier.size(56.dp)
-                        .background(Safelight, RoundedCornerShape(999.dp))
-                        .clickable {
-                            if (lib.playing) lib.stopPlay()
-                            else if (!lib.startPlay()) toast("这个范围没有照片", null, null)
-                            else toast("◍ 随机幻灯片 · ${lib.scopeName()} ${lib.queue.size} 张", null, null)
-                        },
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(ShuffleIcon, contentDescription = "随机放映", tint = FilmBlack, modifier = Modifier.size(24.dp))
+                // 洗牌钮:与其他图标同规格,红色图标点缀
+                IconBtn(ShuffleIcon, "随机放映", tint = Safelight) {
+                    if (lib.playing) lib.stopPlay()
+                    else if (!lib.startPlay()) toast("这个范围没有照片", null, null)
+                    else toast("◍ 随机幻灯片 · ${lib.scopeName()} ${lib.queue.size} 张", null, null)
                 }
             }
         }
@@ -381,12 +374,17 @@ private fun fmtDate(ts: Long): String =
 
 /** 无边框图标按钮(Google 相册风):48dp 触摸区,矢量图标居中 */
 @Composable
-private fun IconBtn(icon: ImageVector, contentDesc: String, onClick: () -> Unit) {
+private fun IconBtn(
+    icon: ImageVector,
+    contentDesc: String,
+    tint: Color = Paper.copy(alpha = 0.85f),
+    onClick: () -> Unit,
+) {
     Box(
         Modifier.size(48.dp).clickable(onClick = onClick),
         contentAlignment = Alignment.Center
     ) {
-        Icon(icon, contentDescription = contentDesc, tint = Paper.copy(alpha = 0.85f), modifier = Modifier.size(22.dp))
+        Icon(icon, contentDescription = contentDesc, tint = tint, modifier = Modifier.size(22.dp))
     }
 }
 
