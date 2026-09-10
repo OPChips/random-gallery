@@ -18,6 +18,14 @@ import androidx.compose.foundation.gestures.calculatePan
 import androidx.compose.foundation.gestures.calculateZoom
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.FavoriteBorder
+import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -26,6 +34,7 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.input.pointer.positionChange
 import androidx.compose.ui.layout.ContentScale
@@ -301,18 +310,18 @@ fun ViewerScreen(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                RoundBtn(46.dp, "☰") { lib.pauseForInteraction(); onDrawer() }
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+                IconBtn(Icons.Filled.Menu, "打开抽屉") { lib.pauseForInteraction(); onDrawer() }
+                Row(horizontalArrangement = Arrangement.spacedBy(4.dp), verticalAlignment = Alignment.CenterVertically) {
                     HeartBtn(faved = current != null && current!!.id in lib.favs) {
                         current?.let {
                             lib.toggleFav(it.id)
                             toast(if (it.id in lib.favs) "♥ 已加入收藏" else "已取消收藏", null, null)
                         }
                     }
-                    RoundBtn(46.dp, "ⓘ") { lib.pauseForInteraction(); onExif() }
-                    RoundBtn(46.dp, "🗑") { lib.pauseForInteraction(); onTrash() }
+                    IconBtn(Icons.Filled.Info, "图片信息") { lib.pauseForInteraction(); onExif() }
+                    IconBtn(Icons.Filled.Delete, "删除") { lib.pauseForInteraction(); onTrash() }
                 }
-                // 洗牌大圆钮:恒红底
+                // 洗牌大圆钮:恒红底,标准 shuffle 矢量图标
                 Box(
                     Modifier.size(56.dp)
                         .background(Safelight, RoundedCornerShape(999.dp))
@@ -323,7 +332,7 @@ fun ViewerScreen(
                         },
                     contentAlignment = Alignment.Center
                 ) {
-                    IconText("⤨", FilmBlack)
+                    Icon(ShuffleIcon, contentDescription = "随机放映", tint = FilmBlack, modifier = Modifier.size(24.dp))
                 }
             }
         }
@@ -363,20 +372,15 @@ private fun counterText(lib: Library, poolSize: Int): String {
 private fun fmtDate(ts: Long): String =
     SimpleDateFormat("yyyy:MM:dd HH:mm", Locale.getDefault()).format(Date(ts))
 
+/** 无边框图标按钮(Google 相册风):48dp 触摸区,矢量图标居中 */
 @Composable
-private fun IconText(glyph: String, color: Color) {
-    Text(glyph, color = color, fontSize = 19.sp, textAlign = TextAlign.Center)
-}
-
-/** 46dp 圆形描边按钮 */
-@Composable
-private fun RoundBtn(size: androidx.compose.ui.unit.Dp, glyph: String, onClick: () -> Unit) {
+private fun IconBtn(icon: ImageVector, contentDesc: String, onClick: () -> Unit) {
     Box(
-        Modifier.size(size)
-            .border(1.dp, Color(0x22FFFFFF), RoundedCornerShape(999.dp))
-            .clickable(onClick = onClick),
+        Modifier.size(48.dp).clickable(onClick = onClick),
         contentAlignment = Alignment.Center
-    ) { IconText(glyph, Paper.copy(alpha = 0.85f)) }
+    ) {
+        Icon(icon, contentDescription = contentDesc, tint = Paper.copy(alpha = 0.85f), modifier = Modifier.size(22.dp))
+    }
 }
 
 @Composable
@@ -391,14 +395,14 @@ private fun HeartBtn(faved: Boolean, onClick: () -> Unit) {
         }
     }
     Box(
-        Modifier.size(46.dp)
-            .border(1.dp, if (faved) Safelight else Color(0x22FFFFFF), RoundedCornerShape(999.dp))
-            .clickable { popTick++; onClick() },
+        Modifier.size(48.dp).clickable { popTick++; onClick() },
         contentAlignment = Alignment.Center
     ) {
-        Text(
-            "♥", color = if (faved) Safelight else DimText, fontSize = 20.sp,
-            modifier = Modifier.graphicsLayer { scaleX = pop.value; scaleY = pop.value }
+        Icon(
+            if (faved) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,
+            contentDescription = if (faved) "取消收藏" else "收藏",
+            tint = if (faved) Safelight else DimText,
+            modifier = Modifier.size(22.dp).graphicsLayer { scaleX = pop.value; scaleY = pop.value }
         )
     }
 }
@@ -494,9 +498,10 @@ private fun Hud(
                     .clickable { lib.togglePause() },
                 contentAlignment = Alignment.Center
             ) {
-                Text(
-                    if (lib.paused) "▶" else "❚❚",
-                    color = Color(0xFF111111), fontSize = 14.sp
+                Icon(
+                    if (lib.paused) Icons.Filled.PlayArrow else PauseIcon,
+                    contentDescription = if (lib.paused) "播放" else "暂停",
+                    tint = Color(0xFF111111), modifier = Modifier.size(20.dp)
                 )
             }
             Spacer(Modifier.width(14.dp))
