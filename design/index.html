@@ -173,13 +173,13 @@ h1 .en em{color:var(--safelight);font-style:italic}
   transition:opacity .3s,transform .3s;
 }
 .ibtn{
-  width:46px;height:46px;border-radius:50%;border:1px solid #ffffff22;
-  background:#0e0e12cc;color:#ddd;display:flex;align-items:center;justify-content:center;
-  cursor:pointer;backdrop-filter:blur(6px);transition:all .2s;
+  width:48px;height:48px;border-radius:50%;border:none;
+  background:transparent;color:#ddd9d4;display:flex;align-items:center;justify-content:center;
+  cursor:pointer;transition:all .2s;
 }
-.ibtn svg{width:20px;height:20px}
-.ibtn:hover{border-color:#ffffff55;color:#fff;transform:translateY(-2px)}
-.ibtn.on{color:var(--safelight);border-color:var(--safelight)}
+.ibtn svg{width:22px;height:22px}
+.ibtn:hover{color:#fff;transform:translateY(-2px)}
+.ibtn.on{color:var(--safelight)}
 .ibtn.shuffle{
   width:56px;height:56px;background:var(--safelight);border:none;color:#160503;
   box-shadow:0 8px 28px -4px rgba(255,75,46,.55);
@@ -580,15 +580,15 @@ footer em{color:var(--safelight);font-style:normal}
             <!-- 底栏 -->
             <div class="botbar" id="botbar">
               <div class="bot-group">
-                <button class="ibtn" id="btnDrawer" title="抽屉 (D)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h10"/></svg></button>
+                <button class="ibtn" id="btnDrawer" title="抽屉 (D)"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg></button>
               </div>
               <div class="bot-group">
-                <button class="ibtn" id="btnFav" title="收藏 (F)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M12 20.7 4.3 13c-2-2-1.8-5.2.3-7a4.7 4.7 0 0 1 6.4.3l1 1.1 1-1.1a4.7 4.7 0 0 1 6.4-.3c2.1 1.8 2.3 5 .3 7z"/></svg></button>
-                <button class="ibtn" id="btnInfo" title="信息 (I)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="8.6"/><path d="M12 11.2v5"/><circle cx="12" cy="8" r="0.6" fill="currentColor" stroke="none"/></svg></button>
-                <button class="ibtn" id="btnDel" title="移入回收站"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 7h16M9.5 7V5h5v2M6.5 7l1 13h9l1-13M10 11v5M14 11v5"/></svg></button>
+                <button class="ibtn" id="btnFav" title="收藏 (F)"><svg id="favIcon" viewBox="0 0 24 24" fill="currentColor"><path d="M16.5 3c-1.74 0-3.41.81-4.5 2.09C10.91 3.81 9.24 3 7.5 3 4.42 3 2 5.42 2 8.5c0 3.78 3.4 6.86 8.55 11.54L12 21.35l1.45-1.32C18.6 15.36 22 12.28 22 8.5 22 5.42 19.58 3 16.5 3zm-4.4 15.55l-.1.1-.1-.1C7.14 14.24 4 11.39 4 8.5 4 6.5 5.5 5 7.5 5c1.54 0 3.04.99 3.57 2.36h1.87C13.46 5.99 14.96 5 16.5 5c2 0 3.5 1.5 3.5 3.5 0 2.89-3.14 5.74-7.9 10.05z"/></svg></button>
+                <button class="ibtn" id="btnInfo" title="信息 (I)"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg></button>
+                <button class="ibtn" id="btnDel" title="移入回收站"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg></button>
               </div>
               <div class="bot-group">
-                <button class="ibtn shuffle" id="btnShuffle" title="随机幻灯片 (空格)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16.5 3.5h4v4M3.5 20.5 20.2 3.8M20.5 15.5v4h-4M14.8 14.8l5.4 5.4M3.5 3.5l5 5"/></svg></button>
+                <button class="ibtn shuffle" id="btnShuffle" title="随机幻灯片 (空格)"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M10.59 9.17 5.41 4 4 5.41l5.17 5.17 1.42-1.41zM14.5 4l2.04 2.04L4 18.59 5.41 20 17.96 7.46 20 9.5V4h-5.5zm.33 9.41-1.41 1.41 3.13 3.13L14.5 20H20v-5.5l-2.04 2.04-3.13-3.13z"/></svg></button>
               </div>
             </div>
 
@@ -607,7 +607,7 @@ footer em{color:var(--safelight);font-style:normal}
               <div class="divider"></div>
               <div class="big-row">
                 <div class="left">
-                  <button class="ibtn playing" id="btnPlay" style="width:38px;height:38px" title="暂停/播放"><svg id="playIcon" viewBox="0 0 24 24" fill="currentColor"><rect x="6.5" y="5" width="4" height="14" rx="1"/><rect x="13.5" y="5" width="4" height="14" rx="1"/></svg></button>
+                  <button class="ibtn playing" id="btnPlay" style="width:38px;height:38px" title="暂停/播放"><svg id="playIcon" viewBox="0 0 24 24" fill="currentColor"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg></button>
                   <div class="speed">
                     <input type="range" id="speedSlider" min="1" max="30" step="1" value="3">
                     <span class="sval" id="speedVal">3s</span>
@@ -966,7 +966,11 @@ function render(){
   $('scopeLabel').classList.toggle('playing', S.playing);
   const favB = $('btnFav');
   $('pcaption').textContent = `${p.date} · ${p.file}`;
-  favB.classList.toggle('on', S.favs.has(p.id));
+  const isFav = S.favs.has(p.id);
+  favB.classList.toggle('on', isFav);
+  $('favIcon').innerHTML = isFav
+    ? '<path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>'
+    : '<path d="M16.5 3c-1.74 0-3.41.81-4.5 2.09C10.91 3.81 9.24 3 7.5 3 4.42 3 2 5.42 2 8.5c0 3.78 3.4 6.86 8.55 11.54L12 21.35l1.45-1.32C18.6 15.36 22 12.28 22 8.5 22 5.42 19.58 3 16.5 3zm-4.4 15.55l-.1.1-.1-.1C7.14 14.24 4 11.39 4 8.5 4 6.5 5.5 5 7.5 5c1.54 0 3.04.99 3.57 2.36h1.87C13.46 5.99 14.96 5 16.5 5c2 0 3.5 1.5 3.5 3.5 0 2.89-3.14 5.74-7.9 10.05z"/>';
   $('slStat').textContent = S.playing
     ? `第 ${S.round} 轮 · 已显影 ${pos+1} / ${list.length}`
     : `已显影 0 / ${pool().length}`;
@@ -1202,8 +1206,8 @@ scrim.onclick = closeDrawer;
 $('btnShuffle').onclick = ()=> S.playing ? stopPlay() : startPlay();
 $('hudClose').onclick = ()=> stopPlay();
 $('btnPlay').onclick = ()=>{
-  if(playT){ stopTick(); $('playIcon').innerHTML = '<path d="M8 5.5v13l11-6.5z"/>'; }
-  else { tick(); $('playIcon').innerHTML = '<rect x="6.5" y="5" width="4" height="14" rx="1"/><rect x="13.5" y="5" width="4" height="14" rx="1"/>'; }
+  if(playT){ stopTick(); $('playIcon').innerHTML = '<path d="M8 5v14l11-7z"/>'; }
+  else { tick(); $('playIcon').innerHTML = '<path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>'; }
 };
 $('btnFav').onclick = ()=>{
   const p = currentPhoto(); if(!p) return;
