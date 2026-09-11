@@ -121,17 +121,21 @@ fun ViewerScreen(
             lib.advance(1)
         }
     }
-    // 禅模式:看图/放映统一逻辑——3s 无操作沉浸;暂停需显示控制;池空不隐藏(留着开抽屉的入口)
-    LaunchedEffect(lib.playing, lib.paused, zenTick, pool.size) {
+    // 禅模式:放映中 3s 无操作自动沉浸;看图态轻点开关控制条,不自动收起
+    LaunchedEffect(lib.playing, lib.paused, zenTick, lib.loaded) {
         when {
             lib.playing && lib.pendingAuto -> { lib.pendingAuto = false; zen = true }
-            lib.paused -> zen = false
-            pool.isEmpty() -> zen = false
-            else -> {
-                delay(3000)
-                zen = true
-                if (!zenToasted) { zenToasted = true; toast("轻点屏幕 · 呼出控制", null, null) }
+            lib.playing && lib.paused -> zen = false
+            lib.playing -> {
+                if (pool.isEmpty()) zen = false
+                else {
+                    delay(3000)
+                    zen = true
+                    if (!zenToasted) { zenToasted = true; toast("轻点屏幕 · 呼出控制", null, null) }
+                }
             }
+            lib.loaded && pool.isEmpty() -> zen = false   // 看图态池空:留着抽屉入口
+            // 看图态有照片:zen 不动,由轻点开关(启动默认沉浸)
         }
     }
 
@@ -155,7 +159,7 @@ fun ViewerScreen(
             pos.x < screenW * 0.2f -> page(-1)
             pos.x > screenW * 0.8f -> page(1)
             lib.playing -> { zen = false; zenTick++; lib.togglePause() }   // 点中间 = 暂停/恢复 + 呼出 HUD
-            else -> { zen = false; zenTick++ }   // 看图态:呼出控制,3s 后自动收起
+            else -> zen = !zen   // 看图态:轻点开/关控制条,不自动收起
         }
     }
 
