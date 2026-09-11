@@ -89,8 +89,8 @@ fun ViewerScreen(
     var back by remember { mutableStateOf<Photo?>(null) }
     val trans = remember { Animatable(1f) }
 
-    // ── 禅模式 ──
-    var zen by remember { mutableStateOf(false) }
+    // ── 禅模式(看图/放映都默认沉浸,轻点呼出控制,3s 无操作再收起)──
+    var zen by remember { mutableStateOf(true) }
     var zenTick by remember { mutableStateOf(0) }
     var zenToasted by remember { mutableStateOf(false) }
     var lastSwipeAt by remember { mutableStateOf(0L) }   // 刚滑动切图,350ms 内不算轻点
@@ -121,16 +121,18 @@ fun ViewerScreen(
             lib.advance(1)
         }
     }
-    // 禅模式:播放 3s 后沉浸;pendingAuto 直接沉浸
-    LaunchedEffect(lib.playing, lib.paused, zenTick) {
-        if (lib.playing && !lib.paused) {
-            if (lib.pendingAuto) { lib.pendingAuto = false; zen = true }
-            else {
+    // 禅模式:看图/放映统一逻辑——3s 无操作沉浸;暂停需显示控制;池空不隐藏(留着开抽屉的入口)
+    LaunchedEffect(lib.playing, lib.paused, zenTick, pool.size) {
+        when {
+            lib.playing && lib.pendingAuto -> { lib.pendingAuto = false; zen = true }
+            lib.paused -> zen = false
+            pool.isEmpty() -> zen = false
+            else -> {
                 delay(3000)
                 zen = true
                 if (!zenToasted) { zenToasted = true; toast("轻点屏幕 · 呼出控制", null, null) }
             }
-        } else zen = false   // 暂停或停止都退出沉浸
+        }
     }
 
     fun hudTouch() { zen = false; zenTick++ }
@@ -153,6 +155,7 @@ fun ViewerScreen(
             pos.x < screenW * 0.2f -> page(-1)
             pos.x > screenW * 0.8f -> page(1)
             lib.playing -> { zen = false; zenTick++; lib.togglePause() }   // 点中间 = 暂停/恢复 + 呼出 HUD
+            else -> { zen = false; zenTick++ }   // 看图态:呼出控制,3s 后自动收起
         }
     }
 

@@ -1039,8 +1039,8 @@ function goZen(){
 function enterZen(delay=3000){
   clearTimeout(zenT);
   $('screen').classList.remove('zen');
-  if(delay<=0){ if(S.playing) goZen(); return; }
-  zenT = setTimeout(()=>{ if(S.playing) goZen(); }, delay);
+  if(delay<=0){ goZen(); return; }
+  zenT = setTimeout(goZen, delay);   // 看图/放映统一:3s 无操作沉浸
 }
 function startPlay(auto=false){
   const list = pool();
@@ -1216,11 +1216,11 @@ $('btnFav').onclick = ()=>{
 };
 $('btnInfo').onclick = ()=> infosheet.classList.contains('open') ? infosheet.classList.remove('open') : renderInfo();
 $('infoClose').onclick = ()=> infosheet.classList.remove('open');
-/* 点面板外空白处关闭底部面板;播放中轻点 = 呼出/隐藏控制 */
+/* 点面板外空白处关闭底部面板;轻点 = 呼出/隐藏控制(看图/放映通用) */
 stage.addEventListener('click', ()=>{
   if(infosheet.classList.contains('open')) infosheet.classList.remove('open');
   else if($('setsheet').classList.contains('open')) $('setsheet').classList.remove('open');
-  else if(S.playing){
+  else {
     if(Date.now() - swipedAt < 350) return;   // 刚滑动切图,不算轻点
     enterZen($('screen').classList.contains('zen') ? 3000 : 0);
   }
@@ -1387,6 +1387,7 @@ renderDrawer();
 syncSettingsUI();
 applySettings();
 render();
+enterZen();   // 打开即看图态,控制条 3s 后自动收起
 if(SETTINGS.autoplay==='on') startPlay(true);
 </script>
 </body>
