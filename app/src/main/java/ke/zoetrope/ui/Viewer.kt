@@ -357,7 +357,10 @@ fun ViewerScreen(
                 lib = lib, prog = prog.value,
                 onScope = { lib.setScope(it) },
                 onTouch = { hudTouch() },
-                onClose = { if (!lib.paused) zen = true },   // ✕ 收起面板继续放映;暂停中收起会找不到 ▶,忽略
+                onClose = {
+                    if (lib.paused) lib.stopPlay()   // 暂停中 ✕ = 停止放映(停在当前张),否则收起面板继续放
+                    else zen = true
+                },
                 onSpeedCommit = { },
                 toast = toast,
                 modifier = Modifier.align(Alignment.BottomCenter)

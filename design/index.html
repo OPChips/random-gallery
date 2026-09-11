@@ -1203,7 +1203,7 @@ function renderInfo(){
 $('btnDrawer').onclick = ()=> drawer.classList.contains('open') ? closeDrawer() : openDrawer();
 scrim.onclick = closeDrawer;
 $('btnShuffle').onclick = ()=> S.playing ? stopPlay() : startPlay();
-$('hudClose').onclick = ()=> stopPlay();
+$('hudClose').onclick = ()=>{ if(playT) enterZen(0); else stopPlay(); };   // 放映中收起继续放;暂停中 = 停止
 $('btnPlay').onclick = ()=>{
   if(playT){ stopTick(); $('playIcon').innerHTML = '<path d="M8 5v14l11-7z"/>'; }
   else { tick(); $('playIcon').innerHTML = '<path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>'; }
