@@ -266,8 +266,8 @@ h1 .en em{color:var(--safelight);font-style:italic}
 .hud .big-row .left{display:flex;align-items:center;gap:8px}
 .hud .hint{font-family:var(--mono);font-size:9px;color:#555;letter-spacing:.08em}
 .progress{
-  position:absolute;top:0;left:0;height:2px;width:0%;
-  background:var(--safelight);border-radius:2px;
+  position:absolute;top:0;left:0;height:3px;width:0%;
+  background:var(--safelight);border-radius:3px;
 }
 
 /* ── 网格视图 ─────────────────────────────── */
@@ -968,7 +968,7 @@ function render(){
     ? '<path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>'
     : '<path d="M16.5 3c-1.74 0-3.41.81-4.5 2.09C10.91 3.81 9.24 3 7.5 3 4.42 3 2 5.42 2 8.5c0 3.78 3.4 6.86 8.55 11.54L12 21.35l1.45-1.32C18.6 15.36 22 12.28 22 8.5 22 5.42 19.58 3 16.5 3zm-4.4 15.55l-.1.1-.1-.1C7.14 14.24 4 11.39 4 8.5 4 6.5 5.5 5 7.5 5c1.54 0 3.04.99 3.57 2.36h1.87C13.46 5.99 14.96 5 16.5 5c2 0 3.5 1.5 3.5 3.5 0 2.89-3.14 5.74-7.9 10.05z"/>';
   $('slStat').textContent = S.playing
-    ? `第 ${S.round} 轮 · 已显影 ${pos+1} / ${list.length}`
+    ? (typeof playT !== 'undefined' && playT ? `第 ${S.round} 轮 · 已显影 ${pos+1} / ${list.length}` : '已暂停')
     : `已显影 0 / ${pool().length}`;
   document.querySelectorAll('#scopeChips .chip').forEach(c=>c.classList.toggle('on', c.dataset.scope===scopeKey()));
   if(S.gridFolder) renderGrid();
@@ -1074,9 +1074,28 @@ function stopTick(){
 function pausePlay(){ S.playing=false; stopTick(); hud.classList.remove('open'); $('screen').classList.remove('zen'); clearTimeout(zenT); render(); }
 function stopPlay(){ pausePlay(); }
 
-/* ── 抽屉 ── */
-function openDrawer(){ drawer.classList.add('open'); scrim.classList.add('open'); }
-function closeDrawer(){ drawer.classList.remove('open'); scrim.classList.remove('open'); }
+/* 暂停/恢复(计时冻结,S.playing 保持 true);panelPause 供面板打开时冻结 */
+function togglePause(){
+  if(!S.playing) return;
+  if(playT){                                   // 播放中 → 暂停
+    stopTick();
+    $('playIcon').innerHTML = '<path d="M8 5v14l11-7z"/>';
+    $('screen').classList.remove('zen');
+    hud.classList.add('open');
+    $('slStat').textContent = '已暂停';
+  } else {                                     // 暂停中 → 恢复
+    tick();
+    $('playIcon').innerHTML = '<path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>';
+    enterZen();                                // 3s 无操作重新沉浸
+  }
+}
+let panelPaused = false;
+function panelPause(){ if(S.playing && playT){ togglePause(); panelPaused = true; } }
+function panelResume(){ if(panelPaused){ panelPaused = false; togglePause(); } }
+
+/* ── 抽屉(打开自动暂停放映,关闭恢复)── */
+function openDrawer(){ drawer.classList.add('open'); scrim.classList.add('open'); panelPause(); }
+function closeDrawer(){ drawer.classList.remove('open'); scrim.classList.remove('open'); panelResume(); }
 function renderDrawer(){
   const box = $('drawerList'); box.innerHTML='';
   const mk = (html, cls, click) => {
@@ -1152,6 +1171,7 @@ function setScope(sc){
 
 /* ── 网格(印样) ── */
 function openGrid(fid){
+  panelPause();
   S.gridFolder = fid;
   const f = folderById(fid);
   $('gridTitle').textContent = f.name;
@@ -1173,6 +1193,7 @@ function renderGrid(){
     c.innerHTML = `<img src="${p.src}" loading="lazy"><span class="fv">♥</span>`;
     c.onclick = ()=>{
       gridview.classList.remove('open');
+      panelResume();
       setScope('folder:'+fid);
       S.idx = pool().indexOf(p); if(S.idx<0) S.idx=0;
       render();
@@ -1194,6 +1215,7 @@ function renderInfo(){
     <div class="xr"><i>收藏</i><em>${S.favs.has(p.id)?'♥ 是':'否'}</em></div>
     <div class="xr path"><i>路径</i><em>/storage/emulated/0${folderById(p.folder).path}/${p.file}</em></div>`;
   infosheet.classList.add('open');
+  panelPause();
 }
 
 /* ── 事件 ── */
@@ -1211,15 +1233,15 @@ $('btnFav').onclick = ()=>{
   else { S.favs.add(p.id); const b=$('btnFav'); b.classList.remove('pop'); void b.offsetWidth; b.classList.add('pop'); toast('♥ 已加入收藏'); }
   render(); renderDrawer();
 };
-$('btnInfo').onclick = ()=> infosheet.classList.contains('open') ? infosheet.classList.remove('open') : renderInfo();
-$('infoClose').onclick = ()=> infosheet.classList.remove('open');
+$('btnInfo').onclick = ()=> infosheet.classList.contains('open') ? (infosheet.classList.remove('open'), panelResume()) : renderInfo();
+$('infoClose').onclick = ()=>{ infosheet.classList.remove('open'); panelResume(); };
 /* 点面板外空白处关闭底部面板;看图态轻点 = 开/关控制(不自动收起) */
 stage.addEventListener('click', ()=>{
-  if(infosheet.classList.contains('open')) infosheet.classList.remove('open');
-  else if($('setsheet').classList.contains('open')) $('setsheet').classList.remove('open');
+  if(infosheet.classList.contains('open')){ infosheet.classList.remove('open'); panelResume(); }
+  else if($('setsheet').classList.contains('open')){ $('setsheet').classList.remove('open'); panelResume(); }
   else if(S.playing){
     if(Date.now() - swipedAt < 350) return;   // 刚滑动切图,不算轻点
-    enterZen($('screen').classList.contains('zen') ? 3000 : 0);
+    togglePause();                            // 点中间 = 暂停/恢复 + 呼出面板
   }
   else {
     if(Date.now() - swipedAt < 350) return;
@@ -1232,7 +1254,10 @@ $('btnDel').onclick = ()=>{
   const p = currentPhoto(); if(!p) return;
   const i = PHOTOS.indexOf(p);
   PHOTOS.splice(i,1);
-  if(S.playing){ S.round = 1; buildQueue(false); tick(); }
+  if(S.playing){
+    if(!pool().length){ stopPlay(); }
+    else { S.round = 1; buildQueue(true); tick(); }
+  }
   else { S.idx = Math.min(S.idx, Math.max(0, pool().length-1)); }
   render(); renderDrawer();
   toast('🗑 已移入回收站 · 可恢复', {label:'撤销', fn:()=>{
@@ -1242,7 +1267,7 @@ $('btnDel').onclick = ()=>{
     toast('已撤销,照片已放回原位');
   }});
 };
-$('gridBack').onclick = ()=>{ gridview.classList.remove('open'); S.gridFolder=null; };
+$('gridBack').onclick = ()=>{ gridview.classList.remove('open'); S.gridFolder=null; panelResume(); };
 document.querySelectorAll('#scopeChips .chip').forEach(c=>c.onclick = ()=>{
   const k = c.dataset.scope;
   setScope(k==='folder' ? (S.scope.startsWith('folder:') ? S.scope : 'folder:camera') : k);
@@ -1282,8 +1307,8 @@ function applySettings(){
   ['fade','slide','none'].forEach(m=>$('screen').classList.toggle('tr-'+m, SETTINGS.transition===m));
   $('edgebar').style.display = SETTINGS.edgebar==='on' ? '' : 'none';
 }
-$('btnSettings').onclick = ()=>{ closeDrawer(); $('setsheet').classList.add('open'); };
-$('setClose').onclick = ()=> $('setsheet').classList.remove('open');
+$('btnSettings').onclick = ()=>{ closeDrawer(); $('setsheet').classList.add('open'); panelPause(); };
+$('setClose').onclick = ()=>{ $('setsheet').classList.remove('open'); panelResume(); };
 document.querySelectorAll('.setsheet .chips').forEach(g => g.addEventListener('click', e=>{
   const c = e.target.closest('[data-v]'); if(!c) return;
   g.querySelectorAll('[data-v]').forEach(x=>x.classList.remove('on'));
@@ -1318,7 +1343,7 @@ function permDone(){
 $('permGrant').onclick = permDone;
 $('permDeny').onclick = ()=>{ $('permAsk').style.display='none'; $('permDenied').style.display=''; };
 $('permRetry').onclick = permDone;
-$('aboutRow').onclick = ()=>{ $('setsheet').classList.remove('open'); try{ localStorage.removeItem('rg-perm-once'); }catch(e){} showPerm(); };
+$('aboutRow').onclick = ()=>{ $('setsheet').classList.remove('open'); panelResume(); try{ localStorage.removeItem('rg-perm-once'); }catch(e){} showPerm(); };
 try{ if(!localStorage.getItem('rg-perm-once')) setTimeout(showPerm, 600); }catch(e){}
 
 function openStartupDlg(){
