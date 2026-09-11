@@ -11,6 +11,8 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
@@ -476,9 +478,9 @@ private fun Hud(
             .pointerInput(Unit) { detectTapGestures { onTouch() } }
             .padding(14.dp)
     ) {
-        // 顶部细进度线
-        Box(Modifier.fillMaxWidth().height(2.dp).background(LineDark)) {
-            Box(Modifier.fillMaxWidth(prog).height(2.dp).background(Safelight))
+        // 顶部计时进度线(安全灯红)
+        Box(Modifier.fillMaxWidth().height(3.dp).background(LineDark)) {
+            Box(Modifier.fillMaxWidth(prog).height(3.dp).background(Safelight))
         }
         Spacer(Modifier.height(10.dp))
         Row(
@@ -507,6 +509,7 @@ private fun Hud(
             Chip("全库", lib.scopeKey() == "all") { onScope("all") }
         }
         Spacer(Modifier.height(12.dp))
+        // 播放/暂停 + 速度预设 chips(替代滑杆)
         Row(verticalAlignment = Alignment.CenterVertically) {
             Box(
                 Modifier.size(38.dp).background(Paper, RoundedCornerShape(19.dp))
@@ -520,33 +523,18 @@ private fun Hud(
                 )
             }
             Spacer(Modifier.width(14.dp))
-            var speed by remember(lib.speed) { mutableStateOf(lib.speed) }
-            androidx.compose.material3.Slider(
-                value = speed,
-                onValueChange = { speed = it },
-                onValueChangeFinished = { lib.speed = speed; lib.saveSpeed() },
-                valueRange = 1f..30f,
-                steps = 28,
-                modifier = Modifier.weight(1f).height(30.dp),
-                colors = androidx.compose.material3.SliderDefaults.colors(
-                    thumbColor = Safelight,
-                    activeTrackColor = Safelight.copy(alpha = 0.5f),
-                    inactiveTrackColor = Color(0xFF33333D),
-                )
-            )
+            Text("SPEED", color = DimText, fontSize = 9.sp, fontFamily = FontFamily.Monospace, letterSpacing = 0.14.em)
             Spacer(Modifier.width(10.dp))
-            Text(
-                "${speed.toInt()}s",
-                color = Paper, fontSize = 11.sp, fontFamily = FontFamily.Monospace,
-                modifier = Modifier.width(30.dp), textAlign = TextAlign.End
-            )
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.horizontalScroll(rememberScrollState())
+            ) {
+                listOf(1f, 2f, 3f, 5f, 8f, 12f, 20f, 30f).forEach { s ->
+                    Chip("${s.toInt()}s", lib.speed == s) { lib.speed = s; lib.saveSpeed() }
+                }
+            }
         }
-        Spacer(Modifier.height(8.dp))
-        Text(
-            "一轮不重复\n播完自动重洗",
-            color = DimText, fontSize = 9.sp, fontFamily = FontFamily.Monospace,
-            lineHeight = 14.sp, letterSpacing = 0.06.em
-        )
     }
 }
 

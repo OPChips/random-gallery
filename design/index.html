@@ -605,14 +605,11 @@ footer em{color:var(--safelight);font-style:normal}
               </div>
               <div class="divider"></div>
               <div class="big-row">
-                <div class="left">
+                <div class="left" style="width:100%">
                   <button class="ibtn playing" id="btnPlay" style="width:38px;height:38px" title="暂停/播放"><svg id="playIcon" viewBox="0 0 24 24" fill="currentColor"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg></button>
-                  <div class="speed">
-                    <input type="range" id="speedSlider" min="1" max="30" step="1" value="3">
-                    <span class="sval" id="speedVal">3s</span>
-                  </div>
+                  <span class="hint" style="letter-spacing:.14em">SPEED</span>
+                  <div class="chips" id="speedChips" style="gap:6px;flex:1"></div>
                 </div>
-                <span class="hint">一轮不重复<br>播完自动重洗</span>
               </div>
             </div>
 
@@ -1250,11 +1247,18 @@ document.querySelectorAll('#scopeChips .chip').forEach(c=>c.onclick = ()=>{
   const k = c.dataset.scope;
   setScope(k==='folder' ? (S.scope.startsWith('folder:') ? S.scope : 'folder:camera') : k);
 });
-$('speedSlider').addEventListener('input', e=>{
-  S.speed = +e.target.value;
-  $('speedVal').textContent = S.speed + 's';
-});
-$('speedSlider').addEventListener('change', ()=>{ if(S.playing) tick(); });
+/* 速度预设 chips(替代滑杆) */
+const SPEEDS = [1,2,3,5,8,12,20,30];
+function renderSpeedChips(){
+  $('speedChips').innerHTML = SPEEDS.map(s=>
+    `<span class="chip${S.speed===s?' on':''}" data-s="${s}">${s}s</span>`).join('');
+  $('speedChips').querySelectorAll('.chip').forEach(c=>c.onclick = ()=>{
+    S.speed = +c.dataset.s;
+    renderSpeedChips();
+    if(S.playing) tick();
+  });
+}
+renderSpeedChips();
 document.querySelectorAll('.navzone').forEach(n=>n.onclick = ()=>go(+n.dataset.nav));
 $('emptyBtn').onclick = ()=> S.scope==='fav' ? setScope('all') : openDrawer();
 
