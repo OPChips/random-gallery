@@ -523,17 +523,14 @@ private fun Hud(
                 )
             }
             Spacer(Modifier.width(14.dp))
-            Text("SPEED", color = DimText, fontSize = 9.sp, fontFamily = FontFamily.Monospace, letterSpacing = 0.14.em)
-            Spacer(Modifier.width(10.dp))
             Row(
                 horizontalArrangement = Arrangement.spacedBy(6.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.horizontalScroll(rememberScrollState())
             ) {
-                // 语义化档位:选中的显示对应秒数
-                listOf("静赏" to 20f, "从容" to 12f, "标准" to 5f, "快切" to 2f).forEach { (label, s) ->
-                    val on = lib.speed == s
-                    Chip(if (on) "$label·${s.toInt()}s" else label, on) { lib.speed = s; lib.saveSpeed() }
+                // 语义化档位:词 + 秒数两行展示
+                listOf("静赏" to 20, "从容" to 12, "标准" to 5, "快切" to 2).forEach { (label, s) ->
+                    SpeedChip(label, s, lib.speed == s.toFloat()) { lib.speed = s.toFloat(); lib.saveSpeed() }
                 }
             }
         }
@@ -550,5 +547,25 @@ fun Chip(label: String, on: Boolean, onClick: () -> Unit) {
             .padding(horizontal = 14.dp, vertical = 6.dp)
     ) {
         Text(label, color = if (on) Color(0xFF111111) else DimText, fontSize = 12.sp)
+    }
+}
+
+/** 速度档位 chip:词 + 秒数两行,始终展示秒数,选中反色 */
+@Composable
+private fun SpeedChip(label: String, seconds: Int, on: Boolean, onClick: () -> Unit) {
+    Column(
+        Modifier
+            .background(if (on) Paper else ChipBg, RoundedCornerShape(999.dp))
+            .border(1.dp, if (on) Paper else LineDark, RoundedCornerShape(999.dp))
+            .clickable(onClick = onClick)
+            .padding(horizontal = 12.dp, vertical = 4.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(label, color = if (on) Color(0xFF111111) else DimText, fontSize = 12.sp)
+        Text(
+            "${seconds}s",
+            color = if (on) Color(0xFF111111).copy(alpha = 0.55f) else Color(0xFF5A5560),
+            fontSize = 8.sp, fontFamily = FontFamily.Monospace
+        )
     }
 }
