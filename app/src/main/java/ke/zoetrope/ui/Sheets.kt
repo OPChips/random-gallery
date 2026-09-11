@@ -18,6 +18,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
 import androidx.exifinterface.media.ExifInterface
+import ke.zoetrope.BuildConfig
 import ke.zoetrope.data.Library
 import ke.zoetrope.data.Photo
 import java.text.SimpleDateFormat
@@ -201,16 +202,11 @@ fun SettingsSheet(
             title = "关于",
             right = {
                 Text(
-                    "走马灯 ZT-01 · v0.1.0",
+                    "走马灯 ZT-01 · v${BuildConfig.VERSION_NAME}",
                     color = DimText, fontSize = 10.sp,
                     modifier = Modifier.clickable { onClose(); onReplayPerm() }.padding(4.dp)
                 )
             }
-        )
-        Text(
-            "HIDE = 移出随机池,文件不动",
-            color = Color(0xFF5A5560), fontSize = 9.sp, fontFamily = FontFamily.Monospace,
-            modifier = Modifier.padding(horizontal = 22.dp, vertical = 10.dp)
         )
     }
 
