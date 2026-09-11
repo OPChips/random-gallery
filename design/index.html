@@ -1272,11 +1272,13 @@ document.querySelectorAll('#scopeChips .chip').forEach(c=>c.onclick = ()=>{
   const k = c.dataset.scope;
   setScope(k==='folder' ? (S.scope.startsWith('folder:') ? S.scope : 'folder:camera') : k);
 });
-/* 速度预设 chips(替代滑杆) */
-const SPEEDS = [1,2,3,5,8,12,20,30];
+/* 速度语义化档位 chips(替代滑杆):静赏20s 从容12s 标准5s 快切2s */
+const SPEEDS = [ {label:'静赏',s:20}, {label:'从容',s:12}, {label:'标准',s:5}, {label:'快切',s:2} ];
 function renderSpeedChips(){
-  $('speedChips').innerHTML = SPEEDS.map(s=>
-    `<span class="chip${S.speed===s?' on':''}" data-s="${s}">${s}s</span>`).join('');
+  $('speedChips').innerHTML = SPEEDS.map(v=>{
+    const on = S.speed === v.s;
+    return `<span class="chip${on?' on':''}" data-s="${v.s}">${on ? v.label+'·'+v.s+'s' : v.label}</span>`;
+  }).join('');
   $('speedChips').querySelectorAll('.chip').forEach(c=>c.onclick = ()=>{
     S.speed = +c.dataset.s;
     renderSpeedChips();

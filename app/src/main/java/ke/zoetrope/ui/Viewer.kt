@@ -530,8 +530,10 @@ private fun Hud(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.horizontalScroll(rememberScrollState())
             ) {
-                listOf(1f, 2f, 3f, 5f, 8f, 12f, 20f, 30f).forEach { s ->
-                    Chip("${s.toInt()}s", lib.speed == s) { lib.speed = s; lib.saveSpeed() }
+                // 语义化档位:选中的显示对应秒数
+                listOf("静赏" to 20f, "从容" to 12f, "标准" to 5f, "快切" to 2f).forEach { (label, s) ->
+                    val on = lib.speed == s
+                    Chip(if (on) "$label·${s.toInt()}s" else label, on) { lib.speed = s; lib.saveSpeed() }
                 }
             }
         }
