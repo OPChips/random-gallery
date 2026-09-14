@@ -1275,8 +1275,8 @@ document.querySelectorAll('#scopeChips .chip').forEach(c=>c.onclick = ()=>{
   const k = c.dataset.scope;
   setScope(k==='folder' ? (S.scope.startsWith('folder:') ? S.scope : 'folder:camera') : k);
 });
-/* 速度语义化档位 chips(替代滑杆):静赏20s 从容12s 标准5s 快切2s */
-const SPEEDS = [ {label:'静赏',s:20}, {label:'从容',s:12}, {label:'标准',s:5}, {label:'快切',s:2} ];
+/* 速度档位 chips(替代滑杆):慢速20s 较慢12s 适中5s 快速2s */
+const SPEEDS = [ {label:'慢速',s:20}, {label:'较慢',s:12}, {label:'适中',s:5}, {label:'快速',s:2} ];
 function renderSpeedChips(){
   $('speedChips').innerHTML = SPEEDS.map(v=>{
     const on = S.speed === v.s;
