@@ -528,8 +528,8 @@ private fun Hud(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.horizontalScroll(rememberScrollState())
             ) {
-                // 语义化档位:词 + 秒数两行展示
-                listOf("静赏" to 20, "从容" to 12, "标准" to 5, "快切" to 2).forEach { (label, s) ->
+                // 速度档位:词 + 秒数两行展示
+                listOf("慢速" to 20, "较慢" to 12, "适中" to 5, "快速" to 2).forEach { (label, s) ->
                     SpeedChip(label, s, lib.speed == s.toFloat()) { lib.speed = s.toFloat(); lib.saveSpeed() }
                 }
             }
