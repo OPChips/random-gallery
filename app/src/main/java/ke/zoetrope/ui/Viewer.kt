@@ -550,13 +550,13 @@ fun Chip(label: String, on: Boolean, onClick: () -> Unit) {
     }
 }
 
-/** 速度档位 chip:词 + 秒数两行,始终展示秒数,选中反色 */
+/** 速度档位 chip:圆角矩形,词 + 秒数两行,选中反色 */
 @Composable
 private fun SpeedChip(label: String, seconds: Int, on: Boolean, onClick: () -> Unit) {
     Column(
         Modifier
-            .background(if (on) Paper else ChipBg, RoundedCornerShape(999.dp))
-            .border(1.dp, if (on) Paper else LineDark, RoundedCornerShape(999.dp))
+            .background(if (on) Paper else ChipBg, RoundedCornerShape(10.dp))
+            .border(1.dp, if (on) Paper else LineDark, RoundedCornerShape(10.dp))
             .clickable(onClick = onClick)
             .padding(horizontal = 12.dp, vertical = 4.dp),
         horizontalAlignment = Alignment.CenterHorizontally
