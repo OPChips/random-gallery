@@ -557,7 +557,7 @@ footer em{color:var(--safelight);font-style:normal}
             <!-- 抽屉 -->
             <div class="scrim" id="scrim"></div>
             <div class="drawer" id="drawer">
-              <h5>⟨&nbsp;FOLDERS&nbsp;/&nbsp;<b>侧滑抽屉</b>&nbsp;⟩</h5>
+              <h5>⟨&nbsp;<b>文件夹</b>&nbsp;⟩</h5>
               <div id="drawerList"></div>
               <button class="setbtn" id="btnSettings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/><circle cx="9" cy="7" r="2.3" fill="#101014"/><circle cx="15.5" cy="12" r="2.3" fill="#101014"/><circle cx="7.5" cy="17" r="2.3" fill="#101014"/></svg>设置</button>
             </div>
@@ -849,6 +849,7 @@ const S = {
   playing:false, speed:3, round:1,
   queue:[], qp:0,         // 洗牌队列
   gridFolder:null,
+  recentFolders:[],       // 最近浏览的文件夹(MRU 在前)
 };
 
 const $ = id => document.getElementById(id);
@@ -1068,8 +1069,13 @@ function renderDrawer(){
   const sep = document.createElement('div');
   sep.style.cssText='height:1px;background:#26262e;margin:8px 22px';
   box.appendChild(sep);
-  // 文件夹行
-  FOLDERS.forEach(f=>{
+  // 文件夹行:最近浏览优先,默认只展示 5 个,可展开/收起
+  let showAllFolders = renderDrawer._all || false;
+  const sorted = [...FOLDERS].sort((a,b)=>{
+    const ia=S.recentFolders.indexOf(a.id), ib=S.recentFolders.indexOf(b.id);
+    return (ia<0?999:ia)-(ib<0?999:ib);
+  });
+  (showAllFolders ? sorted : sorted.slice(0,5)).forEach(f=>{
     const hid = S.hidden.has(f.id);
     const cover = PHOTOS.find(p=>p.folder===f.id);
     const n = PHOTOS.filter(p=>p.folder===f.id).length;
@@ -1090,6 +1096,13 @@ function renderDrawer(){
     };
     box.appendChild(row);
   });
+  if(FOLDERS.length>5){
+    const more = document.createElement('div');
+    more.className = 'drow';
+    more.innerHTML = `<div class="nm" style="color:var(--safelight);text-align:center">${showAllFolders?'收起':'查看更多'}</div>`;
+    more.onclick = ()=>{ renderDrawer._all = !showAllFolders; renderDrawer(); };
+    box.appendChild(more);
+  }
   // 已忽略(单张不再显示)
   if(S.ignored.size){
     const row = document.createElement('div');
@@ -1113,6 +1126,10 @@ function renderDrawer(){
 function setScope(sc){
   S.scope = sc;
   S.idx = 0;
+  if(sc.startsWith('folder:')){
+    const fid = sc.split(':')[1];
+    S.recentFolders = [fid, ...S.recentFolders.filter(x=>x!==fid)].slice(0,20);
+  }
   if(S.playing){
     if(!pool().length){ stopPlay(); }
     else { S.round = 1; buildQueue(true); if(playT) tick(); }

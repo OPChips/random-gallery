@@ -49,21 +49,12 @@ fun DrawerPanel(
             Modifier.weight(1f).fillMaxWidth()
                 .verticalScroll(rememberScrollState())
         ) {
-        Row(Modifier.padding(horizontal = 22.dp, vertical = 10.dp)) {
-            Text(
-                "⟨ FOLDERS / ",
-                color = DimText, fontSize = 9.sp, fontFamily = FontFamily.Monospace, letterSpacing = 0.14.em
-            )
-            Text(
-                "侧滑抽屉",
-                color = Safelight, fontSize = 9.sp, fontFamily = FontFamily.Monospace, letterSpacing = 0.14.em,
-                fontWeight = FontWeight.Bold
-            )
-            Text(
-                " ⟩",
-                color = DimText, fontSize = 9.sp, fontFamily = FontFamily.Monospace, letterSpacing = 0.14.em
-            )
-        }
+        Text(
+            "⟨ 文件夹 ⟩",
+            color = Safelight, fontSize = 9.sp, fontFamily = FontFamily.Monospace, letterSpacing = 0.14.em,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.padding(horizontal = 22.dp, vertical = 10.dp)
+        )
 
         // 收藏行
         DrawerRow(
@@ -97,8 +88,12 @@ fun DrawerPanel(
                 .height(1.dp).background(LineDark)
         )
 
-        // 文件夹行
-        folders.forEach { f ->
+        // 文件夹行:最近浏览优先,默认只展示 5 个,可展开/收起
+        val sortedFolders = remember(folders, lib.recentBuckets) {
+            folders.sortedBy { f -> lib.recentBuckets.indexOf(f.bucketId).takeIf { it >= 0 } ?: Int.MAX_VALUE }
+        }
+        var showAllFolders by remember { mutableStateOf(false) }
+        (if (showAllFolders) sortedFolders else sortedFolders.take(5)).forEach { f ->
             val hid = f.bucketId in lib.hidden
             DrawerRow(
                 onClick = {
@@ -145,6 +140,16 @@ fun DrawerPanel(
                     ) { Text("⊞", color = DimText, fontSize = 17.sp) }
                 }
             }
+        }
+        if (sortedFolders.size > 5) {
+            Text(
+                if (showAllFolders) "收起" else "查看更多",
+                color = Safelight, fontSize = 12.sp,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { showAllFolders = !showAllFolders }
+                    .padding(horizontal = 22.dp, vertical = 10.dp)
+            )
         }
 
         // 已忽略(单张不再显示)
