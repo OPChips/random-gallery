@@ -11,8 +11,6 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.horizontalScroll
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
@@ -52,6 +50,7 @@ import coil.compose.AsyncImage
 import ke.zoetrope.data.Library
 import ke.zoetrope.data.Photo
 import ke.zoetrope.data.SKeys
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
@@ -93,7 +92,6 @@ fun ViewerScreen(
 
     // ── 禅模式(看图/放映都默认沉浸,轻点呼出控制,3s 无操作再收起)──
     var zen by remember { mutableStateOf(true) }
-    var zenTick by remember { mutableStateOf(0) }
     var zenToasted by remember { mutableStateOf(false) }
     var lastSwipeAt by remember { mutableStateOf(0L) }   // 刚滑动切图,350ms 内不算轻点
 
@@ -114,17 +112,27 @@ fun ViewerScreen(
     }
     // 记住最后看的
     LaunchedEffect(currentId) { lib.saveLast(current) }
+    // 记录最近浏览的文件夹(设置页"固定文件夹"列表按此排序)
+    LaunchedEffect(currentId) { lib.recordBucketVisit(current?.bucketId) }
 
-    // 放映计时 + 进度(细线/HUD 共用)
+    // 放映计时 + 进度(细线):暂停时冻结,恢复从断点续播
+    var resumeFrom by remember { mutableStateOf(0f) }
     LaunchedEffect(lib.playing, lib.paused, lib.speed, lib.queue, lib.qp) {
         if (lib.playing && !lib.paused && lib.queue.isNotEmpty()) {
-            prog.snapTo(0f)
-            prog.animateTo(1f, tween((lib.speed * 1000).toInt(), easing = LinearEasing))
-            lib.advance(1)
+            try {
+                val from = resumeFrom
+                resumeFrom = 0f
+                prog.snapTo(from)
+                prog.animateTo(1f, tween(((1f - from) * lib.speed * 1000).toInt().coerceAtLeast(1), easing = LinearEasing))
+                lib.advance(1)
+            } catch (e: CancellationException) {
+                if (lib.paused) resumeFrom = prog.value   // 被暂停打断:记住断点
+                throw e
+            }
         }
     }
     // 禅模式:放映中 3s 无操作自动沉浸;看图态轻点开关控制条,不自动收起
-    LaunchedEffect(lib.playing, lib.paused, zenTick, lib.loaded) {
+    LaunchedEffect(lib.playing, lib.paused, lib.loaded) {
         when {
             lib.playing && lib.pendingAuto -> { lib.pendingAuto = false; zen = true }
             lib.playing && lib.paused -> zen = false
@@ -141,9 +149,8 @@ fun ViewerScreen(
         }
     }
 
-    fun hudTouch() { zen = false; zenTick++ }
-
-    // ── 交互暂停:放映中任何交互先暂停(lib.pauseForInteraction),合适时机 lib.autoResume 恢复 ──
+    // ── 交互自动暂停:缩放/长按走 pauseForInteraction(autoPaused),结束 autoResume 自动恢复 ──
+    // 面板按钮与轻点图片走 pauseManual(手动暂停,保持到用户再操作)
     // 缩放查看时暂停,缩回 1x 自动恢复
     LaunchedEffect(scale) {
         if (scale > 1f) lib.pauseForInteraction() else if (scale == 1f) lib.autoResume()
@@ -160,7 +167,7 @@ fun ViewerScreen(
             swiped -> {}
             pos.x < screenW * 0.2f -> page(-1)
             pos.x > screenW * 0.8f -> page(1)
-            lib.playing -> { zen = false; zenTick++; lib.togglePause() }   // 点中间 = 暂停/恢复 + 呼出 HUD
+            lib.playing -> { lib.togglePause(); zen = lib.paused }   // 点中间 = 暂停弹面板 / 恢复收面板
             else -> zen = !zen   // 看图态:轻点开/关控制条,不自动收起
         }
     }
@@ -290,7 +297,11 @@ fun ViewerScreen(
                         animationSpec = infiniteRepeatable(tween(900), RepeatMode.Reverse)
                     )
                     Box(Modifier.size(6.dp).background(
-                        if (lib.playing) Safelight.copy(alpha = dotA) else DimText,
+                        when {
+                            lib.playing && !lib.paused -> Safelight.copy(alpha = dotA)   // 放映中:呼吸
+                            lib.playing -> Safelight.copy(alpha = 0.45f)                 // 暂停:实心暗红
+                            else -> DimText
+                        },
                         RoundedCornerShape(3.dp)
                     ))
                     Spacer(Modifier.width(7.dp))
@@ -324,7 +335,7 @@ fun ViewerScreen(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                IconBtn(Icons.Filled.Menu, "打开抽屉") { lib.pauseForInteraction(); onDrawer() }
+                IconBtn(Icons.Filled.Menu, "打开抽屉") { lib.pauseManual(); onDrawer() }
                 Row(horizontalArrangement = Arrangement.spacedBy(4.dp), verticalAlignment = Alignment.CenterVertically) {
                     HeartBtn(faved = current != null && current!!.id in lib.favs) {
                         current?.let {
@@ -332,14 +343,27 @@ fun ViewerScreen(
                             toast(if (it.id in lib.favs) "♥ 已加入收藏" else "已取消收藏", null, null)
                         }
                     }
-                    IconBtn(Icons.Filled.Info, "图片信息") { lib.pauseForInteraction(); onExif() }
-                    IconBtn(Icons.Filled.Delete, "删除") { lib.pauseForInteraction(); onTrash() }
+                    IconBtn(Icons.Filled.Info, "图片信息") { lib.pauseManual(); onExif() }
+                    IconBtn(Icons.Filled.Delete, "删除") { lib.pauseManual(); onTrash() }
                 }
-                // 洗牌钮:与其他图标同规格,红色图标点缀
-                IconBtn(ShuffleIcon, "随机放映", tint = Safelight) {
-                    if (lib.playing) lib.stopPlay()
-                    else if (!lib.startPlay()) toast("这个范围没有照片", null, null)
-                    else toast("◍ 随机幻灯片 · ${lib.scopeName()} ${lib.queue.size} 张", null, null)
+                // 放映钮:三态 ▶ 开始 / ⏸ 放映中 / ▶ 暂停中(再点恢复)
+                IconBtn(
+                    if (lib.playing && !lib.paused) PauseIcon else Icons.Filled.PlayArrow,
+                    when {
+                        !lib.playing -> "开始放映"
+                        lib.paused -> "恢复放映"
+                        else -> "暂停放映"
+                    },
+                    tint = Safelight
+                ) {
+                    when {
+                        !lib.playing -> {
+                            if (!lib.startPlay()) toast("这个范围没有照片", null, null)
+                            else toast("◍ 随机幻灯片 · ${lib.scopeName()} ${lib.queue.size} 张", null, null)
+                        }
+                        lib.paused -> { lib.togglePause(); zen = true }   // 恢复 + 收起面板
+                        else -> lib.togglePause()
+                    }
                 }
             }
         }
@@ -350,23 +374,6 @@ fun ViewerScreen(
                 Modifier.align(Alignment.BottomStart).fillMaxWidth(prog.value)
                     .padding(bottom = navPad)
                     .height(2.dp).background(Color(0x26FFFFFF))
-            )
-        }
-
-        // ── 幻灯片 HUD ──
-        if (lib.playing && !zen) {
-            Hud(
-                lib = lib, prog = prog.value,
-                onScope = { lib.setScope(it) },
-                onTouch = { hudTouch() },
-                onClose = {
-                    if (lib.paused) lib.stopPlay()   // 暂停中 ✕ = 停止放映(停在当前张),否则收起面板继续放
-                    else zen = true
-                },
-                onSpeedCommit = { },
-                toast = toast,
-                modifier = Modifier.align(Alignment.BottomCenter)
-                    .padding(start = 14.dp, end = 14.dp, bottom = 96.dp + navPad)
             )
         }
     }
@@ -456,116 +463,5 @@ private fun EmptyState(lib: Library, onDrawer: () -> Unit) {
                 )
             }
         }
-    }
-}
-
-/** 幻灯片 HUD:范围 chips + 播放暂停 + 速度滑杆 */
-@Composable
-private fun Hud(
-    lib: Library,
-    prog: Float,
-    onScope: (String) -> Unit,
-    onTouch: () -> Unit,
-    onClose: () -> Unit,
-    onSpeedCommit: () -> Unit,
-    toast: ToastFn,
-    modifier: Modifier = Modifier,
-) {
-    Column(
-        modifier.fillMaxWidth()
-            .background(HudBg, RoundedCornerShape(16.dp))
-            .border(1.dp, LineDark, RoundedCornerShape(16.dp))
-            .pointerInput(Unit) { detectTapGestures { onTouch() } }
-            .padding(14.dp)
-    ) {
-        // 顶部计时进度线(安全灯红)
-        Box(Modifier.fillMaxWidth().height(3.dp).background(LineDark)) {
-            Box(Modifier.fillMaxWidth(prog).height(3.dp).background(Safelight))
-        }
-        Spacer(Modifier.height(10.dp))
-        Row(
-            Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text("◍ RANDOM SLIDESHOW", color = Safelight, fontSize = 9.sp, fontFamily = FontFamily.Monospace, letterSpacing = 0.2.em)
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(
-                    if (lib.paused) "已暂停" else "第 ${lib.round} 轮 · 已显影 ${lib.qp + 1} / ${lib.queue.size}",
-                    color = DimText, fontSize = 10.sp, fontFamily = FontFamily.Monospace
-                )
-                Spacer(Modifier.width(12.dp))
-                Text("✕", color = DimText, fontSize = 14.sp,
-                    modifier = Modifier.clickable { onClose() }.padding(4.dp))
-            }
-        }
-        Spacer(Modifier.height(10.dp))
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            val curBucket = lib.current()?.bucketId
-            Chip("当前夹", lib.scopeKey() == "folder") {
-                if (curBucket != null) onScope("bucket:$curBucket")
-            }
-            Chip("收藏", lib.scopeKey() == "fav") { onScope("fav") }
-            Chip("全库", lib.scopeKey() == "all") { onScope("all") }
-        }
-        Spacer(Modifier.height(12.dp))
-        // 播放/暂停 + 速度预设 chips(替代滑杆)
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Box(
-                Modifier.size(38.dp).background(Paper, RoundedCornerShape(19.dp))
-                    .clickable { lib.togglePause() },
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    if (lib.paused) Icons.Filled.PlayArrow else PauseIcon,
-                    contentDescription = if (lib.paused) "播放" else "暂停",
-                    tint = Color(0xFF111111), modifier = Modifier.size(20.dp)
-                )
-            }
-            Spacer(Modifier.width(14.dp))
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(6.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.horizontalScroll(rememberScrollState())
-            ) {
-                // 速度档位:词 + 秒数两行展示
-                listOf("慢速" to 20, "较慢" to 12, "适中" to 5, "快速" to 2).forEach { (label, s) ->
-                    SpeedChip(label, s, lib.speed == s.toFloat()) { lib.speed = s.toFloat(); lib.saveSpeed() }
-                }
-            }
-        }
-    }
-}
-
-@Composable
-fun Chip(label: String, on: Boolean, onClick: () -> Unit) {
-    Box(
-        Modifier
-            .background(if (on) Paper else ChipBg, RoundedCornerShape(999.dp))
-            .border(1.dp, if (on) Paper else LineDark, RoundedCornerShape(999.dp))
-            .clickable(onClick = onClick)
-            .padding(horizontal = 14.dp, vertical = 6.dp)
-    ) {
-        Text(label, color = if (on) Color(0xFF111111) else DimText, fontSize = 12.sp)
-    }
-}
-
-/** 速度档位 chip:圆角矩形,词 + 秒数两行,选中反色 */
-@Composable
-private fun SpeedChip(label: String, seconds: Int, on: Boolean, onClick: () -> Unit) {
-    Column(
-        Modifier
-            .background(if (on) Paper else ChipBg, RoundedCornerShape(10.dp))
-            .border(1.dp, if (on) Paper else LineDark, RoundedCornerShape(10.dp))
-            .clickable(onClick = onClick)
-            .padding(horizontal = 12.dp, vertical = 4.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Text(label, color = if (on) Color(0xFF111111) else DimText, fontSize = 12.sp)
-        Text(
-            "${seconds}s",
-            color = if (on) Color(0xFF111111).copy(alpha = 0.55f) else Color(0xFF5A5560),
-            fontSize = 8.sp, fontFamily = FontFamily.Monospace
-        )
     }
 }

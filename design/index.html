@@ -180,11 +180,10 @@ h1 .en em{color:var(--safelight);font-style:italic}
 .ibtn svg{width:22px;height:22px}
 .ibtn:hover{color:#fff;transform:translateY(-2px)}
 .ibtn.on{color:var(--safelight)}
-.ibtn.shuffle{
+.ibtn.playbtn{
   width:48px;height:48px;background:transparent;border:none;color:var(--safelight);
 }
-.ibtn.shuffle:hover{color:#ff6448;transform:translateY(-2px)}
-.ibtn.playing{background:var(--paper);border-color:var(--paper);color:#111}
+.ibtn.playbtn:hover{color:#ff6448;transform:translateY(-2px)}
 .bot-group{display:flex;gap:10px}
 
 /* 心跳动画 */
@@ -235,43 +234,6 @@ h1 .en em{color:var(--safelight);font-style:italic}
   display:flex;align-items:center;justify-content:center;color:var(--safelight);
   background:#1a0e0b;font-size:18px;
 }
-.drawer .foot{
-  margin-top:auto;padding:16px 22px 0;border-top:1px solid var(--line);
-  font-family:var(--mono);font-size:9.5px;color:#555;letter-spacing:.1em;line-height:1.9;
-}
-
-/* ── 幻灯片 HUD ───────────────────────────── */
-.hud{
-  position:absolute;bottom:96px;left:14px;right:14px;z-index:16;
-  background:#0c0c10ee;border:1px solid var(--line2);border-radius:16px;
-  backdrop-filter:blur(10px);padding:12px 14px 13px;
-  transform:translateY(140%);opacity:0;transition:all .35s cubic-bezier(.25,.8,.25,1);
-  pointer-events:none;
-}
-.hud.open{transform:none;opacity:1;pointer-events:auto}
-.hud .hd-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
-.hud .lbl{font-family:var(--mono);font-size:10px;letter-spacing:.2em;color:var(--safelight)}
-.hud .stat{font-family:var(--mono);font-size:10px;color:var(--dim)}
-.hud .chips{display:flex;gap:6px;flex-wrap:wrap}
-.chip{
-  font-family:var(--mono);font-size:10.5px;padding:5px 11px;border-radius:99px;
-  border:1px solid var(--line2);color:var(--dim);cursor:pointer;transition:all .15s;
-  letter-spacing:.05em;user-select:none;
-}
-.chip:hover{color:var(--paper)}
-.chip.on{background:var(--paper);color:#111;border-color:var(--paper)}
-/* 速度档位 chip:圆角矩形,词 + 秒数两行 */
-.chip.speed{display:inline-flex;flex-direction:column;align-items:center;line-height:1.2;padding:3px 12px;border-radius:10px}
-.chip.speed i{font-style:normal;font-size:8px;opacity:.55}
-.chip.red.on{background:var(--safelight);color:#160503;border-color:var(--safelight)}
-.hud .divider{height:1px;background:var(--line);margin:10px -4px}
-.hud .big-row{display:flex;align-items:center;justify-content:space-between}
-.hud .big-row .left{display:flex;align-items:center;gap:8px}
-.hud .hint{font-family:var(--mono);font-size:9px;color:#555;letter-spacing:.08em}
-.progress{
-  position:absolute;top:0;left:0;height:3px;width:0%;
-  background:var(--safelight);border-radius:3px;
-}
 
 /* ── 网格视图 ─────────────────────────────── */
 .gridview{
@@ -320,7 +282,6 @@ h1 .en em{color:var(--safelight);font-style:italic}
   font-family:var(--mono);font-size:11px;letter-spacing:.14em;cursor:pointer;
 }
 .setbtn:hover{color:var(--paper)}
-.setbtn span{color:#555;font-size:9px;margin-left:auto}
 .setbtn svg{width:15px;height:15px}
 .setsheet{
   position:absolute;left:10px;right:10px;bottom:10px;z-index:26;max-height:76%;overflow-y:auto;
@@ -378,8 +339,7 @@ h1 .en em{color:var(--safelight);font-style:italic}
 .screen.show-cap .pcaption{opacity:1}
 /* 沉浸模式:播放中无操作自动隐藏控制 */
 .screen.zen .topbar,.screen.zen .botbar{opacity:0}
-.screen.zen .topbar,.screen.zen .botbar,.screen.zen .hud{pointer-events:none}
-.screen.zen .hud{transform:translateY(140%);opacity:0}
+.screen.zen .topbar,.screen.zen .botbar{pointer-events:none}
 
 /* ── Toast ────────────────────────────────── */
 .toast{
@@ -512,7 +472,7 @@ footer em{color:var(--safelight);font-style:normal}
         <p class="tagline rv" style="--d:.32s">
           大图优先的个人看图 App。打开即全屏,<strong>左右滑切图</strong>,侧滑抽屉换文件夹;
           灵魂功能<strong>随机幻灯片</strong>——洗牌算法保证一轮不重复,像暗房里随机显影一张旧底片。
-          下面这台"手机"是可交互的:试试滑动、按 <strong>空格</strong>、或点那个红色的洗牌键。
+          下面这台"手机"是可交互的:试试滑动、按 <strong>空格</strong>、或点那个红色的放映键。
         </p>
         <div class="meta-row rv" style="--d:.42s">
           <span>STACK&nbsp;<b>Kotlin&nbsp;·&nbsp;Compose</b></span>
@@ -532,7 +492,7 @@ footer em{color:var(--safelight);font-style:normal}
           </div>
           <div class="note">
             <span class="no">03</span><span class="nm">随机幻灯片</span>
-            <p>范围三选一:<code>当前夹 / 收藏 / 全库</code>。Fisher–Yates 洗牌,一轮内零重复;速度 1–30s 可调,播完自动重洗。计数器实时显示"已显影 n / N"。</p>
+            <p>Fisher–Yates 洗牌,一轮内零重复;范围随抽屉选择。底栏 <code>▶ / ⏸</code> 一键开始、暂停、恢复,放映中轻点图片同样暂停/恢复;间隔 <code>3s / 5s / 10s</code> 在设置里调,播完自动重洗。计数器实时显示"已显影 n / N"。</p>
           </div>
           <div class="note">
             <span class="no">04</span><span class="nm">收藏与隐藏</span>
@@ -590,29 +550,7 @@ footer em{color:var(--safelight);font-style:normal}
                 <button class="ibtn" id="btnDel" title="移入回收站"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg></button>
               </div>
               <div class="bot-group">
-                <button class="ibtn shuffle" id="btnShuffle" title="随机幻灯片 (空格)"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M10.59 9.17 5.41 4 4 5.41l5.17 5.17 1.42-1.41zM14.5 4l2.04 2.04L4 18.59 5.41 20 17.96 7.46 20 9.5V4h-5.5zm.33 9.41-1.41 1.41 3.13 3.13L14.5 20H20v-5.5l-2.04 2.04-3.13-3.13z"/></svg></button>
-              </div>
-            </div>
-
-            <!-- 幻灯片 HUD -->
-            <div class="hud" id="hud">
-              <div class="progress" id="progress"></div>
-              <div class="hd-row">
-                <span class="lbl">◍ RANDOM SLIDESHOW</span>
-                <span style="display:flex;gap:10px;align-items:center"><span class="stat" id="slStat">已显影 0 / 21</span><button class="xbtn" id="hudClose" title="关闭幻灯片">✕</button></span>
-              </div>
-              <div class="chips" id="scopeChips">
-                <span class="chip" data-scope="folder">当前夹</span>
-                <span class="chip" data-scope="fav">收藏</span>
-                <span class="chip on" data-scope="all">全库</span>
-              </div>
-              <div class="divider"></div>
-              <div class="big-row">
-                <div class="left" style="width:100%">
-                  <button class="ibtn playing" id="btnPlay" style="width:38px;height:38px" title="暂停/播放"><svg id="playIcon" viewBox="0 0 24 24" fill="currentColor"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg></button>
-                  <span class="hint" style="letter-spacing:.14em">SPEED</span>
-                  <div class="chips" id="speedChips" style="gap:6px;flex:1"></div>
-                </div>
+                <button class="ibtn playbtn" id="btnPlayTri" title="放映 (空格)"><svg id="triIcon" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></button>
               </div>
             </div>
 
@@ -621,8 +559,7 @@ footer em{color:var(--safelight);font-style:normal}
             <div class="drawer" id="drawer">
               <h5>⟨&nbsp;FOLDERS&nbsp;/&nbsp;<b>侧滑抽屉</b>&nbsp;⟩</h5>
               <div id="drawerList"></div>
-              <button class="setbtn" id="btnSettings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/><circle cx="9" cy="7" r="2.3" fill="#101014"/><circle cx="15.5" cy="12" r="2.3" fill="#101014"/><circle cx="7.5" cy="17" r="2.3" fill="#101014"/></svg>设置<span>SETTINGS&nbsp;·&nbsp;PREFS</span></button>
-              <div class="foot">HIDE&nbsp;= 移出随机池,文件不动</div>
+              <button class="setbtn" id="btnSettings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/><circle cx="9" cy="7" r="2.3" fill="#101014"/><circle cx="15.5" cy="12" r="2.3" fill="#101014"/><circle cx="7.5" cy="17" r="2.3" fill="#101014"/></svg>设置</button>
             </div>
 
             <!-- 网格(印样) -->
@@ -668,6 +605,12 @@ footer em{color:var(--safelight);font-style:normal}
               <div class="set-row"><span class="lb">信息角标</span><div class="sw" data-group="caption"></div></div>
 
             <div class="set-row"><span class="lb">进度细线</span><div class="sw" data-group="edgebar"></div></div>
+
+              <div class="set-row"><span class="lb">放映间隔</span>
+                <div class="seg chips" data-group="speed">
+                  <span data-v="3" class="on">3s</span><span data-v="5">5s</span><span data-v="10">10s</span>
+                </div>
+              </div>
 
               <div class="set-row"><span class="lb">主题</span>
                 <div class="seg chips" data-group="theme">
@@ -723,7 +666,7 @@ footer em{color:var(--safelight);font-style:normal}
       <span><kbd>长按</kbd> 不再显示</span>
       <span><kbd>I</kbd> 信息</span>
       <span><kbd>Esc</kbd> 关闭/停止</span>
-      <span>播放中 轻点屏幕 呼出/隐藏控制</span>
+      <span>放映中 轻点屏幕 暂停/恢复</span>
       <span>· 手机上:滑动 / 点按</span>
     </div>
   </div>
@@ -767,8 +710,8 @@ footer em{color:var(--safelight);font-style:normal}
       <thead><tr><th>操作</th><th>手势 / 键</th><th>行为</th></tr></thead>
       <tbody>
         <tr><td>切图</td><td class="k">swipe ←/→ · ArrowKeys</td><td>当前范围内顺序切换,照片带位移 + 淡入过渡</td></tr>
-        <tr><td>随机幻灯片</td><td class="k">SPACE · 洗牌键</td><td>打开 HUD,自动播放;暂停/继续/调速(1–30s)皆在 HUD 内完成</td></tr>
-        <tr><td>切换范围</td><td class="k">HUD chips</td><td>当前夹 / 收藏 / 全库,切换即重建洗牌队列,播放不断</td></tr>
+        <tr><td>随机幻灯片</td><td class="k">SPACE · 放映键</td><td>底栏 ▶ 开始放映;放映中变 ⏸,再点恢复;轻点图片同样暂停/恢复,暂停会弹出底栏并保持</td></tr>
+        <tr><td>切换范围</td><td class="k">抽屉</td><td>抽屉选文件夹 / 收藏 / 全库,放映中切换即重建洗牌队列</td></tr>
         <tr><td>换文件夹</td><td class="k">左缘右滑 · D</td><td>抽屉列出封面与张数;隐藏行可一键恢复</td></tr>
         <tr><td>印样网格</td><td class="k">抽屉行尾 ⊞</td><td>进入该文件夹缩略图网格,点格回到大图对应位置(批量管理入口)</td></tr>
         <tr><td>收藏</td><td class="k">F · 心形键</td><td>心形弹跳反馈;收藏夹可作随机范围</td></tr>
@@ -784,7 +727,7 @@ footer em{color:var(--safelight);font-style:normal}
   <section class="blk">
     <div class="sect-h rv"><span class="sn">05</span><h2>共识清单</h2><span class="sub">v1&nbsp;SCOPE&nbsp;·&nbsp;FROM&nbsp;GRILL-ME</span></div>
     <div class="checkgrid rv" style="--d:.1s">
-      <div class="chk"><b><span class="tick">[✓]</span>随机幻灯片</b><p>三范围 + 洗牌零重复 + 速度可调 + 播完重洗。灵魂功能。</p></div>
+      <div class="chk"><b><span class="tick">[✓]</span>随机幻灯片</b><p>洗牌零重复 + 底栏播放/暂停 + 轻点图片暂停 + 播完重洗。灵魂功能。</p></div>
       <div class="chk"><b><span class="tick">[✓]</span>大图优先浏览</b><p>全屏为主界面,启动首图可配置,默认"接着上次看"。</p></div>
       <div class="chk"><b><span class="tick">[✓]</span>文件夹抽屉</b><p>MediaStore 按目录分组,混合来源统一为文件夹视图。</p></div>
       <div class="chk"><b><span class="tick">[✓]</span>收藏 + 收藏内随机</b><p>心形一键收藏,收藏即随机池。</p></div>
@@ -910,8 +853,8 @@ const S = {
 
 const $ = id => document.getElementById(id);
 const stage=$('stage'), img=$('photoMain'), topbar=$('topbar'), botbar=$('botbar'),
-      drawer=$('drawer'), scrim=$('scrim'), hud=$('hud'), toastEl=$('toast'),
-      gridview=$('gridview'), infosheet=$('infosheet'), progress=$('progress');
+      drawer=$('drawer'), scrim=$('scrim'), toastEl=$('toast'),
+      gridview=$('gridview'), infosheet=$('infosheet');
 
 /* ── 工具 ── */
 const folderById = id => FOLDERS.find(f=>f.id===id);
@@ -955,7 +898,7 @@ function render(){
   const pos = S.playing ? S.qp : S.idx;
   const p = list[Math.min(pos, list.length-1)];
   if(!p){
-    if(S.playing){ S.playing=false; stopTick(); hud.classList.remove('open'); $('screen').classList.remove('zen'); clearTimeout(zenT); }
+    if(S.playing){ S.playing=false; stopTick(); $('screen').classList.remove('zen'); clearTimeout(zenT); }
     return;
   }
   img.classList.add('swap');
@@ -970,10 +913,7 @@ function render(){
   $('favIcon').innerHTML = isFav
     ? '<path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>'
     : '<path d="M16.5 3c-1.74 0-3.41.81-4.5 2.09C10.91 3.81 9.24 3 7.5 3 4.42 3 2 5.42 2 8.5c0 3.78 3.4 6.86 8.55 11.54L12 21.35l1.45-1.32C18.6 15.36 22 12.28 22 8.5 22 5.42 19.58 3 16.5 3zm-4.4 15.55l-.1.1-.1-.1C7.14 14.24 4 11.39 4 8.5 4 6.5 5.5 5 7.5 5c1.54 0 3.04.99 3.57 2.36h1.87C13.46 5.99 14.96 5 16.5 5c2 0 3.5 1.5 3.5 3.5 0 2.89-3.14 5.74-7.9 10.05z"/>';
-  $('slStat').textContent = S.playing
-    ? (typeof playT !== 'undefined' && playT ? `第 ${S.round} 轮 · 已显影 ${pos+1} / ${list.length}` : '已暂停')
-    : `已显影 0 / ${pool().length}`;
-  document.querySelectorAll('#scopeChips .chip').forEach(c=>c.classList.toggle('on', c.dataset.scope===scopeKey()));
+  syncPlayBtn();
   if(S.gridFolder) renderGrid();
 }
 function scopeKey(){ return S.scope==='fav'?'fav':S.scope==='all'?'all':'folder'; }
@@ -1048,7 +988,6 @@ function startPlay(auto=false){
   S.round = 1;
   buildQueue(true);   // 幻灯片标准做法:停在当前张,走完一个间隔再随机切
   S.playing = true;
-  hud.classList.add('open');
   drawer.classList.remove('open'); scrim.classList.remove('open');
   gridview.classList.remove('open'); infosheet.classList.remove('open');
   render();
@@ -1056,49 +995,58 @@ function startPlay(auto=false){
   if(auto){ enterZen(0); }              // 自动开播:直接沉浸,不弹面板
   else { enterZen(); toast('◍ 随机幻灯片 · ' + scopeName() + ' ' + S.queue.length + ' 张'); }
 }
-function tick(){
+/* 放映计时:进度细线;暂停时冻结在断点,恢复从断点续播 */
+let tickStart = 0, tickFrom = 0;
+function tick(from=0){
   stopTick();
-  progress.style.transition='none'; progress.style.width='0%';
-  void progress.offsetWidth;
-  progress.style.transition=`width ${S.speed}s linear`;
-  progress.style.width='100%';
+  const dur = S.speed*1000*(1-from);
   const eb = $('edgebar');
-  eb.style.transition='none'; eb.style.width='0%';
+  eb.style.transition='none'; eb.style.width=(from*100)+'%';
   void eb.offsetWidth;
-  eb.style.transition=`width ${S.speed}s linear`;
+  eb.style.transition=`width ${dur/1000}s linear`;
   eb.style.width='100%';
-  playT = setTimeout(()=>{ advanceQueue(1); render(); tick(); }, S.speed*1000);
+  tickStart = Date.now(); tickFrom = from;
+  playT = setTimeout(()=>{ advanceQueue(1); render(); tick(); }, dur);
 }
-function stopTick(){
-  clearTimeout(playT);
-  progress.style.transition='none'; progress.style.width='0%';
-  const eb = $('edgebar'); eb.style.transition='none'; eb.style.width='0%';
-}
-function pausePlay(){ S.playing=false; stopTick(); hud.classList.remove('open'); $('screen').classList.remove('zen'); clearTimeout(zenT); render(); }
-function stopPlay(){ pausePlay(); }
-
-/* 暂停/恢复(计时冻结,S.playing 保持 true);panelPause 供面板打开时冻结 */
-function togglePause(){
-  if(!S.playing) return;
-  if(playT){                                   // 播放中 → 暂停
-    stopTick();
-    $('playIcon').innerHTML = '<path d="M8 5v14l11-7z"/>';
-    $('screen').classList.remove('zen');
-    hud.classList.add('open');
-    $('slStat').textContent = '已暂停';
-  } else {                                     // 暂停中 → 恢复
-    tick();
-    $('playIcon').innerHTML = '<path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>';
-    enterZen();                                // 3s 无操作重新沉浸
+function stopTick(freeze=false){
+  clearTimeout(playT); playT = null;
+  const eb = $('edgebar');
+  if(freeze && tickStart){
+    const p = Math.min(1, tickFrom + (Date.now()-tickStart)/(S.speed*1000));
+    eb.style.transition='none'; eb.style.width=(p*100)+'%';
+  } else {
+    eb.style.transition='none'; eb.style.width='0%';
   }
 }
-let panelPaused = false;
-function panelPause(){ if(S.playing && playT){ togglePause(); panelPaused = true; } }
-function panelResume(){ if(panelPaused){ panelPaused = false; togglePause(); } }
+function pausePlay(){ S.playing=false; stopTick(); $('screen').classList.remove('zen'); clearTimeout(zenT); render(); }
+function stopPlay(){ pausePlay(); }
+
+const ICON_PLAY = '<path d="M8 5v14l11-7z"/>';
+const ICON_PAUSE = '<path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>';
+function syncPlayBtn(){ $('triIcon').innerHTML = (S.playing && playT) ? ICON_PAUSE : ICON_PLAY; }
+
+/* 暂停/恢复:暂停弹出控制并保持,恢复立即沉浸(计时从断点续播) */
+function togglePause(){
+  if(!S.playing) return;
+  if(playT){                                   // 播放中 → 暂停 + 弹出控制,保持暂停
+    stopTick(true);
+    $('screen').classList.remove('zen');
+  } else {                                     // 暂停中 → 恢复 + 立即收起控制
+    tick(tickResumeFrom());
+    goZen();
+  }
+  syncPlayBtn();
+}
+function tickResumeFrom(){
+  const w = parseFloat($('edgebar').style.width) || 0;
+  return Math.max(0, Math.min(0.98, w/100));
+}
+/* 面板(抽屉/信息/删除/设置):打开即手动暂停,关闭后保持暂停,不自动恢复 */
+function panelPause(){ if(S.playing && playT){ togglePause(); } }
 
 /* ── 抽屉(打开自动暂停放映,关闭恢复)── */
 function openDrawer(){ drawer.classList.add('open'); scrim.classList.add('open'); panelPause(); }
-function closeDrawer(){ drawer.classList.remove('open'); scrim.classList.remove('open'); panelResume(); }
+function closeDrawer(){ drawer.classList.remove('open'); scrim.classList.remove('open'); }
 function renderDrawer(){
   const box = $('drawerList'); box.innerHTML='';
   const mk = (html, cls, click) => {
@@ -1167,7 +1115,7 @@ function setScope(sc){
   S.idx = 0;
   if(S.playing){
     if(!pool().length){ stopPlay(); }
-    else { S.round = 1; buildQueue(true); tick(); }
+    else { S.round = 1; buildQueue(true); if(playT) tick(); }
   }
   render(); renderDrawer();
 }
@@ -1196,7 +1144,6 @@ function renderGrid(){
     c.innerHTML = `<img src="${p.src}" loading="lazy"><span class="fv">♥</span>`;
     c.onclick = ()=>{
       gridview.classList.remove('open');
-      panelResume();
       setScope('folder:'+fid);
       S.idx = pool().indexOf(p); if(S.idx<0) S.idx=0;
       render();
@@ -1224,27 +1171,23 @@ function renderInfo(){
 /* ── 事件 ── */
 $('btnDrawer').onclick = ()=> drawer.classList.contains('open') ? closeDrawer() : openDrawer();
 scrim.onclick = closeDrawer;
-$('btnShuffle').onclick = ()=> S.playing ? stopPlay() : startPlay();
-$('hudClose').onclick = ()=>{ if(playT) enterZen(0); else stopPlay(); };   // 放映中收起继续放;暂停中 = 停止
-$('btnPlay').onclick = ()=>{
-  if(playT){ stopTick(); $('playIcon').innerHTML = '<path d="M8 5v14l11-7z"/>'; }
-  else { tick(); $('playIcon').innerHTML = '<path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>'; }
-};
+/* 放映钮三态:未放映 ▶ 开始 / 放映中 ⏸ 暂停 / 暂停中 ▶ 恢复 */
+$('btnPlayTri').onclick = ()=>{ if(!S.playing) startPlay(); else togglePause(); };
 $('btnFav').onclick = ()=>{
   const p = currentPhoto(); if(!p) return;
   if(S.favs.has(p.id)){ S.favs.delete(p.id); toast('已取消收藏'); }
   else { S.favs.add(p.id); const b=$('btnFav'); b.classList.remove('pop'); void b.offsetWidth; b.classList.add('pop'); toast('♥ 已加入收藏'); }
   render(); renderDrawer();
 };
-$('btnInfo').onclick = ()=> infosheet.classList.contains('open') ? (infosheet.classList.remove('open'), panelResume()) : renderInfo();
-$('infoClose').onclick = ()=>{ infosheet.classList.remove('open'); panelResume(); };
-/* 点面板外空白处关闭底部面板;看图态轻点 = 开/关控制(不自动收起) */
+$('btnInfo').onclick = ()=> infosheet.classList.contains('open') ? infosheet.classList.remove('open') : renderInfo();
+$('infoClose').onclick = ()=>{ infosheet.classList.remove('open'); };
+/* 点面板外空白处关闭底部面板;放映中轻点 = 暂停弹控制 / 恢复收控制;看图态轻点 = 开/关控制(不自动收起) */
 stage.addEventListener('click', ()=>{
-  if(infosheet.classList.contains('open')){ infosheet.classList.remove('open'); panelResume(); }
-  else if($('setsheet').classList.contains('open')){ $('setsheet').classList.remove('open'); panelResume(); }
+  if(infosheet.classList.contains('open')){ infosheet.classList.remove('open'); }
+  else if($('setsheet').classList.contains('open')){ $('setsheet').classList.remove('open'); }
   else if(S.playing){
     if(Date.now() - swipedAt < 350) return;   // 刚滑动切图,不算轻点
-    togglePause();                            // 点中间 = 暂停/恢复 + 呼出面板
+    togglePause();                            // 暂停 + 保持暂停;再点恢复 + 收控制
   }
   else {
     if(Date.now() - swipedAt < 350) return;
@@ -1252,49 +1195,31 @@ stage.addEventListener('click', ()=>{
     else goZen();
   }
 });
-hud.addEventListener('pointerdown', ()=>{ if(S.playing) enterZen(); });
 $('btnDel').onclick = ()=>{
+  panelPause();   // 面板按钮:保持暂停
   const p = currentPhoto(); if(!p) return;
   const i = PHOTOS.indexOf(p);
   PHOTOS.splice(i,1);
   if(S.playing){
     if(!pool().length){ stopPlay(); }
-    else { S.round = 1; buildQueue(true); tick(); }
+    else { S.round = 1; buildQueue(true); if(playT) tick(); }
   }
   else { S.idx = Math.min(S.idx, Math.max(0, pool().length-1)); }
   render(); renderDrawer();
   toast('🗑 已移入回收站 · 可恢复', {label:'撤销', fn:()=>{
     PHOTOS.splice(Math.min(i, PHOTOS.length), 0, p);
-    if(S.playing){ buildQueue(true); tick(); }
+    if(S.playing){ buildQueue(true); if(playT) tick(); }
     render(); renderDrawer();
     toast('已撤销,照片已放回原位');
   }});
 };
-$('gridBack').onclick = ()=>{ gridview.classList.remove('open'); S.gridFolder=null; panelResume(); };
-document.querySelectorAll('#scopeChips .chip').forEach(c=>c.onclick = ()=>{
-  const k = c.dataset.scope;
-  setScope(k==='folder' ? (S.scope.startsWith('folder:') ? S.scope : 'folder:camera') : k);
-});
-/* 速度档位 chips(替代滑杆):慢速20s 较慢12s 适中5s 快速2s */
-const SPEEDS = [ {label:'慢速',s:20}, {label:'较慢',s:12}, {label:'适中',s:5}, {label:'快速',s:2} ];
-function renderSpeedChips(){
-  $('speedChips').innerHTML = SPEEDS.map(v=>{
-    const on = S.speed === v.s;
-    return `<span class="chip speed${on?' on':''}" data-s="${v.s}"><b>${v.label}</b><i>${v.s}s</i></span>`;
-  }).join('');
-  $('speedChips').querySelectorAll('.chip').forEach(c=>c.onclick = ()=>{
-    S.speed = +c.dataset.s;
-    renderSpeedChips();
-    if(S.playing) tick();
-  });
-}
-renderSpeedChips();
+$('gridBack').onclick = ()=>{ gridview.classList.remove('open'); S.gridFolder=null; };
 document.querySelectorAll('.navzone').forEach(n=>n.onclick = ()=>go(+n.dataset.nav));
 $('emptyBtn').onclick = ()=> S.scope==='fav' ? setScope('all') : openDrawer();
 
 /* ── 设置 ── */
-const SETTINGS = { startup:'last', loop:'reshuffle', transition:'fade', caption:'off', theme:'system', autoplay:'off', edgebar:'on' };
-const SET_NAMES = { startup:'启动首图', loop:'播完行为', transition:'切图过渡', caption:'信息角标', theme:'主题', autoplay:'启动自动放映', edgebar:'进度细线' };
+const SETTINGS = { startup:'last', loop:'reshuffle', transition:'fade', caption:'off', theme:'system', autoplay:'off', edgebar:'on', speed:'3' };
+const SET_NAMES = { startup:'启动首图', loop:'播完行为', transition:'切图过渡', caption:'信息角标', theme:'主题', autoplay:'启动自动放映', edgebar:'进度细线', speed:'放映间隔' };
 const STARTUP_NAMES = { last:'接着上次看', random:'随机一张', fixed:'固定文件夹', newest:'最新一张' };
 function saveSettings(){ try{ localStorage.setItem('rg-settings', JSON.stringify(SETTINGS)); }catch(e){} }
 function loadSettings(){ try{ const s = JSON.parse(localStorage.getItem('rg-settings')); if(s) Object.assign(SETTINGS, s); }catch(e){} }
@@ -1311,9 +1236,11 @@ function applySettings(){
   $('screen').classList.toggle('show-cap', SETTINGS.caption==='on');
   ['fade','slide','none'].forEach(m=>$('screen').classList.toggle('tr-'+m, SETTINGS.transition===m));
   $('edgebar').style.display = SETTINGS.edgebar==='on' ? '' : 'none';
+  S.speed = +SETTINGS.speed || 3;
+  if(S.playing && playT) tick();   // 放映中改间隔:按新间隔重新计时
 }
 $('btnSettings').onclick = ()=>{ closeDrawer(); $('setsheet').classList.add('open'); panelPause(); };
-$('setClose').onclick = ()=>{ $('setsheet').classList.remove('open'); panelResume(); };
+$('setClose').onclick = ()=>{ $('setsheet').classList.remove('open'); };
 document.querySelectorAll('.setsheet .chips').forEach(g => g.addEventListener('click', e=>{
   const c = e.target.closest('[data-v]'); if(!c) return;
   g.querySelectorAll('[data-v]').forEach(x=>x.classList.remove('on'));
@@ -1348,7 +1275,7 @@ function permDone(){
 $('permGrant').onclick = permDone;
 $('permDeny').onclick = ()=>{ $('permAsk').style.display='none'; $('permDenied').style.display=''; };
 $('permRetry').onclick = permDone;
-$('aboutRow').onclick = ()=>{ $('setsheet').classList.remove('open'); panelResume(); try{ localStorage.removeItem('rg-perm-once'); }catch(e){} showPerm(); };
+$('aboutRow').onclick = ()=>{ $('setsheet').classList.remove('open'); try{ localStorage.removeItem('rg-perm-once'); }catch(e){} showPerm(); };
 try{ if(!localStorage.getItem('rg-perm-once')) setTimeout(showPerm, 600); }catch(e){}
 
 function openStartupDlg(){

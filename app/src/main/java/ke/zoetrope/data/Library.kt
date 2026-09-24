@@ -23,6 +23,17 @@ class Library(private val context: Context, private val prefs: Prefs) {
     var hidden by mutableStateOf(prefs.getStringSet(SKeys.HIDDEN)); private set
     var ignored by mutableStateOf(prefs.getStringSet(SKeys.IGNORED).mapNotNull { it.toLongOrNull() }.toSet()); private set
 
+    // ── 最近浏览的文件夹(MRU 在前,持久化)──
+    var recentBuckets by mutableStateOf(
+        prefs.getString(SKeys.RECENT_FOLDERS, "").split(',').filter { it.isNotEmpty() }
+    ); private set
+
+    fun recordBucketVisit(bucketId: String?) {
+        if (bucketId == null || bucketId == "0") return
+        recentBuckets = (listOf(bucketId) + recentBuckets.filter { it != bucketId }).take(20)
+        prefs.putString(SKeys.RECENT_FOLDERS, recentBuckets.joinToString(","))
+    }
+
     // ── 设置(镜像 prefs)──
     var startup by mutableStateOf(prefs.getString(SKeys.STARTUP, "last")); private set
     var autoplay by mutableStateOf(prefs.getBool(SKeys.AUTOPLAY, false)); private set
@@ -34,7 +45,14 @@ class Library(private val context: Context, private val prefs: Prefs) {
 
     // ── 放映参数(跨启动记忆)──
     var scope by mutableStateOf(prefs.getString(SKeys.SCOPE, "all")); private set
-    var speed by mutableStateOf(prefs.getFloat(SKeys.SPEED, 3f))
+    var speed by mutableStateOf(migrateSpeed(prefs.getFloat(SKeys.SPEED, 3f))); private set
+
+    /** 旧档位(2/12/20 等)迁移到最近的三档(3/5/10)并回写 */
+    private fun migrateSpeed(raw: Float): Float {
+        val v = when { raw <= 4f -> 3f; raw <= 7f -> 5f; else -> 10f }
+        if (v != raw) prefs.putFloat(SKeys.SPEED, v)
+        return v
+    }
 
     // ── 播放状态 ──
     var playing by mutableStateOf(false); private set
@@ -54,7 +72,7 @@ class Library(private val context: Context, private val prefs: Prefs) {
     @JvmName("applyCaption") fun setCaption(v: Boolean) { caption = v; prefs.putBool(SKeys.CAPTION, v) }
     @JvmName("applyEdgebar") fun setEdgebar(v: Boolean) { edgebar = v; prefs.putBool(SKeys.EDGEBAR, v) }
     @JvmName("applyTheme") fun setTheme(v: String) { theme = v; prefs.putString(SKeys.THEME, v) }
-    fun saveSpeed() { prefs.putFloat(SKeys.SPEED, speed) }
+    @JvmName("applySpeed") fun setSpeed(v: Float) { speed = v; prefs.putFloat(SKeys.SPEED, v) }
     fun setFixedBucket(b: String) { prefs.putString(SKeys.FIXED_BUCKET, b) }
     fun fixedBucket() = prefs.getString(SKeys.FIXED_BUCKET, "")
 
@@ -222,6 +240,9 @@ class Library(private val context: Context, private val prefs: Prefs) {
     }
 
     fun togglePause() { if (playing) { paused = !paused; autoPaused = false } }
+
+    /** 手动暂停:面板按钮/轻点图片走这里,不会自动恢复,需用户再点播放或轻点图片 */
+    fun pauseManual() { if (playing && !paused) { paused = true; autoPaused = false } }
 
     /** 放映中因交互自动暂停(缩放/长按/开面板);与手动暂停区分 */
     fun pauseForInteraction() {

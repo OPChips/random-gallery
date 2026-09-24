@@ -191,9 +191,9 @@ fun ZoetropeApp() {
     var overlay by remember { mutableStateOf(Overlay.None) }
     var gridBucket by remember { mutableStateOf("") }
 
-    // ── 面板交互暂停:放映中打开面板先暂停,关闭面板自动恢复(手动暂停不代恢复)──
-    fun openOverlay(o: Overlay) { lib.pauseForInteraction(); overlay = o }
-    fun closeOverlay() { overlay = Overlay.None; lib.autoResume() }
+    // ── 面板交互暂停:放映中打开面板(抽屉/信息/删除等)即手动暂停,关闭后保持暂停,由用户决定是否继续 ──
+    fun openOverlay(o: Overlay) { lib.pauseManual(); overlay = o }
+    fun closeOverlay() { overlay = Overlay.None }
 
     // ── 回收站 ──
     var pendingTrash by remember { mutableStateOf<Set<Long>>(emptySet()) }
@@ -206,7 +206,6 @@ fun ZoetropeApp() {
             lib.removeIds(ids)
             toast("🗑 已移入回收站 · 可在系统相册恢复", null, null)
         }
-        lib.autoResume()   // 回收站弹窗关闭,恢复交互暂停的放映
     }
     fun trash(ids: Set<Long>) {
         if (ids.isEmpty()) return

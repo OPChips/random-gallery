@@ -189,6 +189,16 @@ fun SettingsSheet(
         )
         Divider()
         SheetRow(
+            title = "放映间隔",
+            right = {
+                Seg(
+                    listOf("3" to "3s", "5" to "5s", "10" to "10s"),
+                    if (lib.speed <= 4f) "3" else if (lib.speed <= 7f) "5" else "10"
+                ) { lib.setSpeed(it.toFloat()); toast("⚙ 放映间隔 已保存", null, null) }
+            }
+        )
+        Divider()
+        SheetRow(
             title = "主题",
             right = {
                 Seg(
@@ -229,15 +239,20 @@ fun SettingsSheet(
             DialogOption("最新一张", "NEWEST", lib.startup == "newest") {
                 lib.setStartup("newest"); toast("⚙ 启动首图 已保存", null, null); startupDlg = false
             }
-            // 固定文件夹子选择
+            // 固定文件夹子选择:默认最近浏览的前 5 个,可展开全部
             if (lib.startup == "fixed") {
+                // 最近浏览优先(没浏览过的保持原有张数降序)
+                val sorted = remember(folders, lib.recentBuckets) {
+                    folders.sortedBy { f -> lib.recentBuckets.indexOf(f.bucketId).takeIf { it >= 0 } ?: Int.MAX_VALUE }
+                }
+                var showAll by remember { mutableStateOf(false) }
                 Spacer(Modifier.height(8.dp))
                 Text("选文件夹:", color = DimText, fontSize = 10.sp, fontFamily = FontFamily.Monospace)
                 Spacer(Modifier.height(4.dp))
                 Column(
                     Modifier.heightIn(max = 200.dp).verticalScroll(rememberScrollState())
                 ) {
-                    folders.forEach { f ->
+                    (if (showAll) sorted else sorted.take(5)).forEach { f ->
                         Text(
                             (if (lib.fixedBucket() == f.bucketId) "◉ " else "○ ") + f.name,
                             color = if (lib.fixedBucket() == f.bucketId) Safelight else Paper,
@@ -251,6 +266,15 @@ fun SettingsSheet(
                                 .padding(vertical = 6.dp)
                         )
                     }
+                }
+                if (sorted.size > 5) {
+                    Text(
+                        if (showAll) "收起" else "查看更多",
+                        color = Safelight, fontSize = 11.sp,
+                        modifier = Modifier
+                            .clickable { showAll = !showAll }
+                            .padding(top = 6.dp, bottom = 2.dp)
+                    )
                 }
             }
         }

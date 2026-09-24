@@ -34,4 +34,5 @@ object SKeys {
     const val IGNORED = "ignored"
     const val PERM_ASKED = "perm_asked"
     const val THEME = "theme"              // system | dark
+    const val RECENT_FOLDERS = "recent_folders"   // 最近浏览的文件夹 bucketId,逗号分隔,MRU 在前
 }
