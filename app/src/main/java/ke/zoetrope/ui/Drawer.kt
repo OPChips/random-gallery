@@ -193,14 +193,7 @@ fun DrawerPanel(
             Text("⚙", color = Paper, fontSize = 14.sp)
             Spacer(Modifier.width(10.dp))
             Text("设置", color = Paper, fontSize = 13.5.sp)
-            Spacer(Modifier.weight(1f))
-            Text("SETTINGS · PREFS", color = DimText, fontSize = 8.sp, fontFamily = FontFamily.Monospace, letterSpacing = 0.1.em)
         }
-        Text(
-            "HIDE = 移出随机池,文件不动",
-            color = Color(0xFF5A5560), fontSize = 9.sp, fontFamily = FontFamily.Monospace,
-            modifier = Modifier.padding(horizontal = 22.dp)
-        )
     }
 }
 
